@@ -1,0 +1,1837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mesa del Mar — Baja California Sur</title>
+<script src="https://js.stripe.com/v3/"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sand: #f0e8d8;
+    --terra: #c4714a;
+    --dusk: #8b5e3c;
+    --deep: #2c1f14;
+    --sage: #7a8c6e;
+    --sky: #b8d4e3;
+    --white: #fdfaf6;
+    --gold: #d4a843;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  *, *::before, *::after { box-sizing:border-box; }
+  html { scroll-behavior:smooth; overflow-x:hidden; width:100%; }
+  body { background:var(--white); color:var(--deep); font-family:'Jost',sans-serif; font-weight:300; overflow-x:hidden; width:100%; max-width:100vw; }
+
+  /* NAV */
+  nav {
+    position:fixed; top:0; left:0; right:0; z-index:100;
+    display:flex; justify-content:space-between; align-items:center;
+    padding:1.2rem 3rem;
+    background:rgba(44,31,20,0.0);
+    transition: background 0.4s, padding 0.4s;
+  }
+  nav.scrolled { background:rgba(44,31,20,0.92); backdrop-filter:blur(8px); padding:0.8rem 3rem; }
+  .nav-logo { font-family:'Playfair Display',serif; font-size:1.4rem; color:var(--white); letter-spacing:0.05em; }
+  .nav-logo span { color:var(--gold); font-style:italic; }
+  .nav-links { display:flex; gap:2rem; list-style:none; }
+  .nav-links a { color:rgba(255,255,255,0.9); text-decoration:none; font-size:0.85rem; letter-spacing:0.12em; text-transform:uppercase; transition:color 0.2s; }
+  .nav-links a:hover { color:var(--gold); }
+  .nav-book { background:var(--terra); color:white!important; padding:0.5rem 1.4rem!important; border-radius:2px; }
+  .nav-book:hover { background:var(--dusk)!important; color:white!important; }
+
+  /* HERO */
+  .hero {
+    position:relative; height:100vh; min-height:600px;
+    display:flex; align-items:flex-end; justify-content:flex-start;
+    overflow:hidden;
+  }
+  .hero-bg {
+    position:absolute; inset:0;
+    background-image:url('images/image1.jpg');
+    background-size:cover; background-position:center 30%;
+    transform:scale(1.05);
+    animation:heroZoom 12s ease-out forwards;
+  }
+  @keyframes heroZoom { from{transform:scale(1.05)} to{transform:scale(1.0)} }
+  .hero-overlay {
+    position:absolute; inset:0;
+    background: linear-gradient(to top, rgba(44,31,20,0.85) 0%, rgba(44,31,20,0.2) 50%, transparent 100%);
+  }
+  .hero-content {
+    position:relative; z-index:2;
+    padding:0 4rem 4rem;
+    animation: fadeUp 1.2s 0.3s both;
+  }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+  .hero-eyebrow { font-size:0.75rem; letter-spacing:0.25em; text-transform:uppercase; color:var(--gold); margin-bottom:1rem; }
+  .hero-title { font-family:'Playfair Display',serif; font-size:clamp(3rem,7vw,5.5rem); color:var(--white); line-height:1.05; margin-bottom:1.2rem; }
+  .hero-title em { font-style:italic; color:var(--gold); }
+  .hero-sub { color:rgba(255,255,255,0.8); font-size:1.05rem; max-width:480px; line-height:1.7; margin-bottom:2rem; }
+  .hero-ctas { display:flex; gap:1rem; flex-wrap:wrap; }
+  .btn { display:inline-block; padding:0.85rem 2rem; font-size:0.82rem; letter-spacing:0.15em; text-transform:uppercase; text-decoration:none; cursor:pointer; border:none; transition:all 0.25s; border-radius:2px; font-family:'Jost',sans-serif; font-weight:400; }
+  .btn-primary { background:var(--terra); color:white; }
+  .btn-primary:hover { background:var(--dusk); transform:translateY(-2px); }
+  .btn-outline { background:transparent; color:white; border:1px solid rgba(255,255,255,0.5); }
+  .btn-outline:hover { border-color:white; background:rgba(255,255,255,0.1); }
+  .hero-scroll { position:absolute; bottom:2rem; right:3rem; z-index:2; display:flex; flex-direction:column; align-items:center; gap:0.5rem; color:rgba(255,255,255,0.5); font-size:0.7rem; letter-spacing:0.2em; text-transform:uppercase; }
+  .scroll-line { width:1px; height:50px; background:rgba(255,255,255,0.3); animation:scrollPulse 2s infinite; }
+  @keyframes scrollPulse { 0%,100%{opacity:0.3} 50%{opacity:0.8} }
+
+  /* SECTION BASE */
+  section { padding:6rem 0; }
+  .container { max-width:1200px; margin:0 auto; padding:0 3rem; }
+  .section-label { font-size:0.72rem; letter-spacing:0.3em; text-transform:uppercase; color:var(--terra); margin-bottom:1rem; }
+  .section-title { font-family:'Playfair Display',serif; font-size:clamp(2rem,4vw,3rem); line-height:1.15; margin-bottom:1.5rem; color:var(--deep); }
+  .section-title em { font-style:italic; color:var(--terra); }
+  .divider { width:50px; height:2px; background:var(--gold); margin:1.5rem 0; }
+
+  /* INTRO */
+  .intro { background:var(--white); }
+  .intro-grid { display:grid; grid-template-columns:1fr 1fr; gap:5rem; align-items:center; }
+  .intro-text p { color:#5a4a3a; line-height:1.9; margin-bottom:1.2rem; font-size:1.02rem; }
+  .intro-image { position:relative; }
+  .intro-image img { width:100%; height:520px; object-fit:cover; border-radius:2px; }
+  .intro-badge {
+    position:absolute; bottom:-1.5rem; left:-1.5rem;
+    background:var(--terra); color:white;
+    padding:1.5rem; border-radius:2px;
+    font-family:'Playfair Display',serif; font-size:1.1rem; text-align:center; line-height:1.4;
+  }
+  .intro-badge span { display:block; font-family:'Jost',sans-serif; font-size:0.7rem; letter-spacing:0.2em; text-transform:uppercase; margin-top:0.3rem; opacity:0.8; }
+  .amenities { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin-top:2rem; }
+  .amenity { display:flex; align-items:center; gap:0.6rem; font-size:0.88rem; color:#6b5a4a; }
+  .amenity-icon { width:28px; height:28px; background:var(--sand); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.9rem; flex-shrink:0; }
+
+  /* GALLERY */
+  .gallery { background:var(--sand); }
+  .gallery-header { text-align:center; margin-bottom:3rem; }
+  .photo-grid {
+    display:grid;
+    grid-template-columns:repeat(12, 1fr);
+    grid-template-rows:auto;
+    gap:0.75rem;
+  }
+  .photo-item { overflow:hidden; border-radius:2px; }
+  .photo-item img { width:100%; height:100%; object-fit:cover; transition:transform 0.6s ease; display:block; }
+  .photo-item:hover img { transform:scale(1.04); }
+  .p1 { grid-column:1/6; grid-row:1/3; height:420px; }
+  .p2 { grid-column:6/9; grid-row:1/2; height:200px; }
+  .p3 { grid-column:9/13; grid-row:1/2; height:200px; }
+  .p4 { grid-column:6/9; grid-row:2/3; height:200px; }
+  .p5 { grid-column:9/13; grid-row:2/3; height:200px; }
+  .p6 { grid-column:1/5; grid-row:3/4; height:280px; }
+  .p7 { grid-column:5/9; grid-row:3/4; height:280px; }
+  .p8 { grid-column:9/13; grid-row:3/4; height:280px; }
+
+  /* BOOKING SECTION */
+  .booking { background:var(--white); }
+  .booking-tabs { display:flex; gap:0; margin-bottom:3rem; border-bottom:2px solid var(--sand); }
+  .booking-tab {
+    padding:1rem 2.5rem; font-size:0.85rem; letter-spacing:0.15em; text-transform:uppercase;
+    cursor:pointer; border:none; background:transparent; color:#9a8a7a; transition:all 0.2s;
+    border-bottom:2px solid transparent; margin-bottom:-2px; font-family:'Jost',sans-serif;
+  }
+  .booking-tab.active { color:var(--terra); border-bottom-color:var(--terra); font-weight:500; }
+  .booking-panel { display:none; }
+  .booking-panel.active { display:grid; grid-template-columns:1fr 1fr; gap:4rem; }
+
+  .listing-info { }
+  .listing-title { font-family:'Playfair Display',serif; font-size:1.8rem; margin-bottom:0.5rem; }
+  .listing-price {
+    display:inline-flex; align-items:baseline; gap:0.3rem;
+    font-family:'Playfair Display',serif; font-size:2.2rem; color:var(--terra);
+    margin:1rem 0;
+  }
+  .listing-price sub { font-family:'Jost',sans-serif; font-size:0.9rem; color:#9a8a7a; }
+  .listing-desc { color:#6b5a4a; line-height:1.8; margin-bottom:1.5rem; }
+  .listing-features { list-style:none; display:flex; flex-direction:column; gap:0.6rem; }
+  .listing-features li { display:flex; align-items:center; gap:0.8rem; font-size:0.92rem; color:#5a4a3a; }
+  .listing-features li::before { content:"—"; color:var(--gold); }
+  .listing-img { width:100%; height:320px; object-fit:cover; border-radius:2px; margin-bottom:1rem; }
+
+  /* BOOKING FORM */
+  .booking-form { background:var(--sand); padding:2.5rem; border-radius:2px; height:fit-content; }
+  .form-title { font-family:'Playfair Display',serif; font-size:1.3rem; margin-bottom:1.5rem; }
+  .form-group { margin-bottom:1.2rem; }
+  .form-group label { display:block; font-size:0.75rem; letter-spacing:0.15em; text-transform:uppercase; color:#7a6a5a; margin-bottom:0.4rem; }
+  .form-group input, .form-group select, .form-group textarea {
+    width:100%; padding:0.8rem 1rem;
+    background:white; border:1px solid #ddd; border-radius:2px;
+    font-family:'Jost',sans-serif; font-size:0.95rem; color:var(--deep);
+    transition:border 0.2s; outline:none;
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color:var(--terra); }
+  .form-row { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+  .form-total { background:white; padding:1rem; border-radius:2px; margin:1rem 0; display:flex; justify-content:space-between; align-items:center; }
+  .form-total-label { font-size:0.8rem; color:#7a6a5a; }
+  .form-total-price { font-family:'Playfair Display',serif; font-size:1.4rem; color:var(--terra); }
+  .form-note { font-size:0.8rem; color:#9a8a7a; margin-top:0.8rem; line-height:1.6; }
+
+  /* CALENDAR AVAILABILITY */
+  .availability-note {
+    background:var(--white); border:1px solid var(--sand); border-radius:2px;
+    padding:1rem 1.2rem; margin-bottom:1.5rem;
+    font-size:0.85rem; color:#7a6a5a; display:flex; gap:0.8rem; align-items:flex-start;
+  }
+
+  /* BOAT */
+  .boat { background:linear-gradient(135deg, #1a3a4a 0%, #0d2535 100%); color:white; }
+  .boat .section-label { color:var(--sky); }
+  .boat .section-title { color:white; }
+  .boat .divider { background:var(--sky); }
+  .boat-grid { display:grid; grid-template-columns:1fr 1fr; gap:5rem; align-items:center; }
+  .boat-img-wrap { position:relative; }
+  .boat-img { width:100%; height:460px; object-fit:cover; border-radius:2px; }
+  .boat-name-badge {
+    position:absolute; top:1.5rem; left:1.5rem;
+    background:rgba(13,37,53,0.85); backdrop-filter:blur(8px);
+    color:white; padding:0.8rem 1.2rem; border-radius:2px;
+    font-family:'Playfair Display',serif; font-size:1.1rem;
+    border-left:3px solid var(--sky);
+  }
+  .boat p { color:rgba(255,255,255,0.75); line-height:1.9; margin-bottom:1rem; }
+  .boat-specs { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin:1.5rem 0; }
+  .boat-spec { background:rgba(255,255,255,0.07); padding:1rem; border-radius:2px; }
+  .boat-spec-label { font-size:0.7rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--sky); margin-bottom:0.3rem; }
+  .boat-spec-val { font-family:'Playfair Display',serif; font-size:1.1rem; }
+  .boat .listing-price { color:var(--sky); }
+  .boat .listing-price sub { color:rgba(255,255,255,0.5); }
+
+  /* LOCATION */
+  .location { background:var(--sand); }
+  .location-grid { display:grid; grid-template-columns:1fr 1fr; gap:5rem; align-items:start; }
+  .location-map {
+    width:100%; height:400px; background:#c4b89a; border-radius:2px;
+    display:flex; align-items:center; justify-content:center;
+    overflow:hidden; position:relative;
+  }
+  .location-map iframe { width:100%; height:100%; border:none; }
+  .location p { color:#6b5a4a; line-height:1.8; margin-bottom:1rem; }
+  .location-detail { display:flex; align-items:flex-start; gap:1rem; margin-bottom:1.2rem; }
+  .location-icon { font-size:1.2rem; margin-top:0.1rem; }
+  .location-detail-text strong { display:block; font-size:0.8rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--terra); margin-bottom:0.2rem; }
+  .location-detail-text span { color:#6b5a4a; font-size:0.95rem; }
+
+  /* AIRBNB SYNC INFO */
+  .sync-section { background:var(--white); padding:4rem 0; }
+  .sync-card { background:var(--sand); border-radius:2px; padding:2.5rem; max-width:700px; margin:0 auto; text-align:center; }
+  .sync-card h3 { font-family:'Playfair Display',serif; font-size:1.5rem; margin-bottom:1rem; }
+  .sync-card p { color:#6b5a4a; line-height:1.8; margin-bottom:1.5rem; }
+  .sync-steps { text-align:left; display:flex; flex-direction:column; gap:0.8rem; }
+  .sync-step { display:flex; gap:1rem; align-items:flex-start; }
+  .sync-num { background:var(--terra); color:white; width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:500; flex-shrink:0; margin-top:0.1rem; }
+  .sync-step-text { font-size:0.92rem; color:#5a4a3a; line-height:1.6; }
+
+  /* FOOTER */
+  footer { background:var(--deep); color:rgba(255,255,255,0.6); padding:3rem; text-align:center; }
+  footer h3 { font-family:'Playfair Display',serif; color:white; font-size:1.4rem; margin-bottom:0.5rem; }
+  footer p { font-size:0.85rem; line-height:1.8; }
+  footer a { color:var(--gold); text-decoration:none; }
+
+  /* FAQ */
+  .faq-item { border-bottom:1px solid #e0d5c5; }
+  .faq-q {
+    width:100%; background:none; border:none; text-align:left;
+    padding:1.4rem 0; cursor:pointer;
+    font-family:'Playfair Display',serif; font-size:1.05rem; color:var(--deep);
+    display:flex; justify-content:space-between; align-items:center; gap:1rem;
+  }
+  .faq-q:hover { color:var(--terra); }
+  .faq-icon { font-size:1.4rem; color:var(--terra); flex-shrink:0; transition:transform 0.3s; }
+  .faq-q.open .faq-icon { transform:rotate(45deg); }
+  .faq-a { display:none; padding-bottom:1.4rem; }
+  .faq-a p { color:#6b5a4a; line-height:1.9; font-size:0.97rem; }
+
+  /* MODAL */
+  .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; display:none; align-items:center; justify-content:center; }
+  .modal-overlay.open { display:flex; }
+  .modal { background:white; border-radius:2px; padding:2.5rem; max-width:500px; width:90%; max-height:90vh; overflow-y:auto; }
+  .modal h3 { font-family:'Playfair Display',serif; font-size:1.5rem; margin-bottom:1.5rem; }
+  .modal-close { float:right; background:none; border:none; font-size:1.5rem; cursor:pointer; color:#999; margin-top:-0.5rem; }
+  .success-msg { display:none; background:#e8f5e9; border:1px solid #c8e6c9; padding:1.5rem; border-radius:2px; text-align:center; color:#2e7d32; }
+
+  /* RESPONSIVE */
+  /* =============================================
+     HAMBURGER MENU
+  ============================================= */
+  .hamburger {
+    display:none;
+    flex-direction:column;
+    gap:5px;
+    cursor:pointer;
+    padding:4px;
+    background:none;
+    border:none;
+    z-index:200;
+  }
+  .hamburger span {
+    display:block;
+    width:26px;
+    height:2px;
+    background:white;
+    border-radius:2px;
+    transition:all 0.3s ease;
+  }
+  .hamburger.open span:nth-child(1) { transform:translateY(7px) rotate(45deg); }
+  .hamburger.open span:nth-child(2) { opacity:0; }
+  .hamburger.open span:nth-child(3) { transform:translateY(-7px) rotate(-45deg); }
+
+  /* Mobile drawer */
+  .mobile-menu {
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(44,31,20,0.97);
+    z-index:150;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:2.5rem;
+  }
+  .mobile-menu.open { display:flex; }
+  .mobile-menu a {
+    color:rgba(255,255,255,0.85);
+    text-decoration:none;
+    font-size:1.3rem;
+    font-family:'Playfair Display',serif;
+    letter-spacing:0.05em;
+    transition:color 0.2s;
+  }
+  .mobile-menu a:hover { color:var(--gold); }
+  .mobile-menu .mob-book {
+    background:var(--terra);
+    color:white!important;
+    padding:0.8rem 2.5rem;
+    border-radius:2px;
+    font-family:'Jost',sans-serif;
+    font-size:0.85rem;
+    letter-spacing:0.15em;
+    text-transform:uppercase;
+    margin-top:1rem;
+  }
+
+  /* =============================================
+     TABLET (max 900px)
+  ============================================= */
+  @media(max-width:900px) {
+    .intro-grid, .booking-panel.active, .boat-grid, .location-grid { grid-template-columns:1fr; gap:2.5rem; }
+    .hero-content { padding:0 2rem 3rem; }
+    nav { padding:1rem 1.5rem; }
+    .nav-links { display:none; }
+    .hamburger { display:flex; }
+    .container { padding:0 1.5rem; }
+    .intro-badge { display:none; }
+    .photo-grid { grid-template-columns:1fr 1fr; }
+    .p1,.p2,.p3,.p4,.p5,.p6,.p7,.p8 { grid-column:auto; grid-row:auto; height:200px; }
+    .amenities { grid-template-columns:1fr 1fr; }
+    .boat-specs { grid-template-columns:1fr 1fr; }
+    section { padding:4rem 0; }
+    .booking-tabs { flex-wrap:wrap; }
+    .booking-tab { font-size:0.78rem; padding:0.8rem 1.2rem; }
+    #masonry-gallery { columns:2; }
+    .section-title { font-size:clamp(1.6rem,4vw,2.5rem); }
+  }
+
+  /* =============================================
+     MOBILE (max 600px)
+  ============================================= */
+  @media(max-width:600px) {
+    /* Nav */
+    nav { padding:0.9rem 1.2rem; }
+    .nav-logo { font-size:1.1rem; }
+
+    /* Hero */
+    .hero { min-height:100svh; }
+    .hero-content { padding:0 1.5rem 3.5rem; }
+    .hero-title { font-size:2.6rem; line-height:1.08; }
+    .hero-eyebrow { font-size:0.68rem; margin-bottom:0.7rem; }
+    .hero-sub { font-size:0.92rem; margin-bottom:1.5rem; }
+    .hero-ctas { flex-direction:column; gap:0.75rem; }
+    .hero-ctas .btn { text-align:center; width:100%; padding:1rem; font-size:0.8rem; }
+    .hero-scroll { display:none; }
+
+    /* Sections */
+    section { padding:3rem 0; }
+    .container { padding:0 1.2rem; }
+    .section-title { font-size:1.8rem; }
+    .section-label { font-size:0.68rem; }
+    .divider { margin:1rem 0; }
+
+    /* Intro / casita */
+    .intro-grid { grid-template-columns:1fr; gap:2rem; }
+    .intro-image img { height:280px; }
+    .amenities { grid-template-columns:1fr 1fr; gap:0.6rem; }
+    .amenity { font-size:0.82rem; }
+    .amenity-icon { width:24px; height:24px; font-size:0.8rem; }
+
+    /* Gallery strip */
+    .photo-grid { grid-template-columns:1fr; gap:0.5rem; }
+    .p1,.p2,.p3,.p4,.p5,.p6,.p7,.p8 { height:220px; }
+
+    /* Pool section */
+    .intro-grid img { height:260px !important; }
+
+    /* Boat section */
+    .boat-grid { grid-template-columns:1fr; gap:2rem; }
+    .boat-img { height:280px; }
+    .boat-specs { grid-template-columns:1fr 1fr; gap:0.75rem; }
+    .boat-spec { padding:0.75rem; }
+    .boat-spec-val { font-size:0.95rem; }
+
+    /* Bedrooms grid */
+    div[style*="grid-template-columns:repeat(3,1fr)"] {
+      display:grid !important;
+      grid-template-columns:1fr !important;
+      gap:1rem !important;
+    }
+
+    /* Bathrooms grid — same */
+    div[style*="grid-template-columns:1fr 1fr 1fr"] {
+      display:grid !important;
+      grid-template-columns:1fr !important;
+      gap:1rem !important;
+    }
+
+    /* Bedroom/bathroom card images */
+    div[style*="height:300px"] img,
+    div[style*="height:340px"] img { height:240px !important; }
+
+    /* Living room */
+    .intro-grid .intro-image img { height:280px !important; }
+
+    /* Booking */
+    .booking-tabs { flex-direction:column; border-bottom:none; gap:0.5rem; margin-bottom:2rem; }
+    .booking-tab {
+      border:1px solid var(--sand) !important;
+      border-radius:2px;
+      margin-bottom:0 !important;
+      text-align:left;
+      padding:0.9rem 1.2rem;
+    }
+    .booking-tab.active { border-color:var(--terra) !important; }
+    .form-row { grid-template-columns:1fr; }
+    .booking-form { padding:1.5rem 1.2rem; }
+    .listing-img { height:220px; }
+    .listing-price { font-size:1.8rem; }
+    .listing-features li { font-size:0.85rem; }
+
+    /* Location */
+    .location-grid { grid-template-columns:1fr; gap:2rem; }
+    .location-map { height:280px; }
+    .location-detail { gap:0.7rem; }
+
+    /* Masonry gallery */
+    #masonry-gallery { columns:1; column-gap:0; }
+    .gtab { padding:0.6rem 1rem; font-size:0.7rem; }
+
+    /* Sync section */
+    .sync-card { padding:1.5rem 1.2rem; }
+    .sync-step { gap:0.7rem; }
+
+    /* Footer */
+    footer { padding:2rem 1.2rem; }
+    footer h3 { font-size:1.2rem; }
+
+    /* Pool full-width image */
+    div[style*="height:480px"] img { height:260px !important; object-fit:cover; }
+    div[style*="height:380px"] img { height:240px !important; object-fit:cover; }
+    div[style*="height:280px"] { height:220px !important; }
+
+    /* Buttons */
+    .btn { padding:0.8rem 1.5rem; font-size:0.78rem; }
+  }
+
+  /* =============================================
+     SMALL MOBILE (max 400px)
+  ============================================= */
+
+  @media(max-width:600px) {
+    html, body { width:100%; overflow-x:hidden; }
+    .container { width:100%; max-width:100%; padding:0 1.2rem; }
+    section { width:100%; overflow-x:hidden; }
+    img { max-width:100%; height:auto; }
+  }
+
+  @media(max-width:400px) {
+    .hero-title { font-size:2.1rem; }
+    .boat-specs { grid-template-columns:1fr; }
+    .amenities { grid-template-columns:1fr; }
+    #masonry-gallery { columns:1; }
+    .booking-tab { font-size:0.72rem; }
+  }
+
+  /* Responsive interior grids */
+  .grid-3col { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; }
+  .grid-2col { display:grid; grid-template-columns:repeat(2,1fr); gap:1rem; }
+  .grid-card-img { width:100%; height:300px; object-fit:cover; transition:transform 0.5s; display:block; }
+  .grid-card-img:hover { transform:scale(1.03); }
+  @media(max-width:900px) {
+    .grid-3col { grid-template-columns:repeat(2,1fr); }
+  }
+  @media(max-width:600px) {
+    .grid-3col, .grid-2col { grid-template-columns:1fr; }
+    .grid-card-img { height:240px; }
+  }
+
+  /* Payment method selector */
+  .payment-method { margin-bottom:1.2rem; }
+  .payment-options { display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-top:0.5rem; }
+  .payment-option {
+    border:2px solid var(--sand);
+    border-radius:2px;
+    padding:0.9rem 1rem;
+    cursor:pointer;
+    transition:all 0.2s;
+    display:flex;
+    flex-direction:column;
+    gap:0.3rem;
+    background:white;
+  }
+  .payment-option:hover { border-color:var(--terra); }
+  .payment-option.selected { border-color:var(--terra); background:#fdf8f5; }
+  .payment-option input[type=radio] { display:none; }
+  .payment-option-title { font-size:0.85rem; font-weight:500; color:var(--deep); display:flex; align-items:center; gap:0.4rem; }
+  .payment-option-price { font-family:'Playfair Display',serif; font-size:1.1rem; color:var(--terra); }
+  .payment-option-note { font-size:0.72rem; color:#9a8a7a; line-height:1.4; }
+  .zelle-instructions {
+    background:#f0f7ff;
+    border:1px solid #c8dff5;
+    border-radius:2px;
+    padding:1rem 1.2rem;
+    margin-bottom:1rem;
+    display:none;
+  }
+  .zelle-instructions.show { display:block; }
+  .zelle-instructions p { font-size:0.85rem; color:#2c5282; line-height:1.7; }
+  .zelle-instructions strong { color:#1a3a5c; }
+  .stripe-notice {
+    background:#fff8f0;
+    border:1px solid #f0d5b0;
+    border-radius:2px;
+    padding:1rem 1.2rem;
+    margin-bottom:1rem;
+    display:none;
+  }
+  .stripe-notice.show { display:block; }
+  .stripe-notice p { font-size:0.85rem; color:#7a4a1a; line-height:1.7; }
+  @media(max-width:600px) {
+    .payment-options { grid-template-columns:1fr; }
+  }
+
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="navbar">
+  <div class="nav-logo">Mesa <span>del Mar</span></div>
+  <ul class="nav-links">
+    <li><a href="#casita">La Casita</a></li>
+    <li><a href="#amenities">Pool & Amenities</a></li>
+    <li><a href="#interiors">Interiors</a></li>
+    <li><a href="#boat">El Jefe</a></li>
+    <li><a href="#location">Location</a></li>
+    <li><a href="#faq">FAQ</a></li>
+    <li><a href="#contact">Contact</a></li>
+    <li><a href="#gallery-full">Gallery</a></li>
+    <li><a href="#booking" class="nav-book btn">Reserve</a></li>
+  </ul>
+  <button class="hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- MOBILE MENU DRAWER -->
+<div class="mobile-menu" id="mobile-menu">
+  <a href="#casita" onclick="closeMenu()">La Casita</a>
+  <a href="#amenities" onclick="closeMenu()">Pool & Amenities</a>
+  <a href="#interiors" onclick="closeMenu()">Interiors</a>
+  <a href="#boat" onclick="closeMenu()">El Jefe</a>
+  <a href="#location" onclick="closeMenu()">Location</a>
+  <a href="#faq" onclick="closeMenu()">FAQ</a>
+  <a href="#contact" onclick="closeMenu()">Contact</a>
+  <a href="#gallery-full" onclick="closeMenu()">Gallery</a>
+  <a href="#booking" class="mob-book" onclick="closeMenu()">Reserve Now</a>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <p class="hero-eyebrow">Baja California Sur, Mexico</p>
+    <h1 class="hero-title">Where the<br>desert <em>meets</em><br>the sea</h1>
+    <p class="hero-sub">A private estate on Mexico's most storied coastline — where the Sea of Cortez meets the Milky Way.</p>
+    <div class="hero-ctas">
+      <a href="#booking" class="btn btn-primary">Book Your Stay</a>
+      <a href="#casita" class="btn btn-outline">Explore the Property</a>
+    </div>
+  </div>
+  <div class="hero-scroll">
+    <div class="scroll-line"></div>
+    <span>Scroll</span>
+  </div>
+</section>
+
+<!-- INTRO -->
+<section class="intro" id="casita">
+  <div class="container">
+    <div class="intro-grid">
+      <div class="intro-text">
+        <p class="section-label">La Casita</p>
+        <h2 class="section-title">A Baja <em>retreat</em><br>unlike any other</h2>
+        <div class="divider"></div>
+        <p>Set on an expansive estate where ancient cardon cactus stand sentinel and bougainvillea blazes against white stucco walls, Mesa del Mar is the Baja that travelers dream about but rarely find.</p>
+        <p>Three spacious bedrooms, three bathrooms, a covered palapa terrace with hammock — plus shared access to the main estate's breathtaking infinity pool overlooking the Sea of Cortez and the Sierra de la Laguna mountains.</p>
+        <p>The kind of silence that reminds you how far you are from ordinary life. Fall asleep to desert breezes and wake to skies that held a million stars the night before.</p>
+        <p>The property features a stunning circular drive with a stone fountain and sweeping desert views toward the mountains of Baja.</p>
+        <div class="amenities">
+          <div class="amenity"><div class="amenity-icon">🛏</div>3 Bedrooms</div>
+          <div class="amenity"><div class="amenity-icon">🚿</div>3 En-suite Baths</div>
+          <div class="amenity"><div class="amenity-icon">🌴</div>Palapa Terrace</div>
+          <div class="amenity"><div class="amenity-icon">🏖</div>Sea Access</div>
+          <div class="amenity"><div class="amenity-icon">♾️</div>Infinity Pool</div>
+          <div class="amenity"><div class="amenity-icon">🌌</div>Milky Way Stargazing</div>
+          
+          <div class="amenity"><div class="amenity-icon">🔒</div>Private Estate</div>
+          <div class="amenity"><div class="amenity-icon">🍳</div>Full Kitchen</div>
+          <div class="amenity"><div class="amenity-icon">🏔</div>Mountain Views</div>
+          <div class="amenity"><div class="amenity-icon">🌺</div>Bougainvillea Gardens</div>
+        </div>
+      </div>
+      <div class="intro-image">
+        <img src="images/image2.jpg" alt="Mesa del Mar estate entrance">
+        <div class="intro-badge">
+          From $600
+          <span>per night</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+
+<!-- POOL & AMENITIES -->
+<section style="background:var(--white); padding:6rem 0;" id="amenities">
+  <div class="container">
+    <div class="intro-grid">
+      <div class="intro-image" style="position:relative;">
+        <img src="images/image8.jpg" alt="Infinity pool and spa" style="width:100%;height:520px;object-fit:cover;border-radius:2px;">
+        <div class="intro-badge">
+          Infinity Pool
+          <span>with mountain & sea views</span>
+        </div>
+      </div>
+      <div class="intro-text">
+        <p class="section-label">The Full Estate</p>
+        <h2 class="section-title">Your <em>private</em><br>paradise awaits</h2>
+        <div class="divider"></div>
+        <p>The casita is the guest house of the main estate, and guests enjoy shared access to the property's crown jewel — a stunning infinity pool perched above the Sea of Cortez. Watch the water disappear into the horizon by day and surrender to some of Baja's most legendary sunsets by night.</p>
+        <p>The pool terrace offers panoramic views of the rugged Sierra de la Laguna mountains in one direction and the shimmering Sea of Cortez in the other. Lounge chairs, an umbrella, and the unhurried pace of Baja complete the picture.</p>
+        <p>As dusk falls, the sky transforms into a canvas of violet, gold, and coral — reflected perfectly in the still water of the pool. There is simply nowhere else you'd rather be.</p>
+        <div class="amenities">
+          <div class="amenity"><div class="amenity-icon">♾️</div>Infinity Pool</div>
+          <div class="amenity"><div class="amenity-icon">🔥</div>Rock Firepit</div>
+          <div class="amenity"><div class="amenity-icon">🌄</div>Mountain Views</div>
+          <div class="amenity"><div class="amenity-icon">🌊</div>Sea of Cortez Views</div>
+          <div class="amenity"><div class="amenity-icon">🌅</div>Sunset Terrace</div>
+          <div class="amenity"><div class="amenity-icon">🛋</div>Lounge Chairs</div>
+        </div>
+      </div>
+    </div>
+    <!-- Pool sunset full-width -->
+    <div style="margin-top:3rem;border-radius:2px;overflow:hidden;">
+      <img src="images/image9.jpg" alt="Pool reflection at dusk" style="width:100%;height:480px;object-fit:cover;object-position:center 40%;">
+    </div>
+  </div>
+</section>
+
+<!-- BOAT SECTION -->
+<section class="boat" id="boat">
+  <div class="container">
+    <div class="boat-grid">
+      <div class="boat-img-wrap">
+        <img class="boat-img" src="images/image10.jpg" alt="El Jefe sport fisher" id="boat-hero-img">
+        <div class="boat-name-badge">El Jefe</div>
+      </div>
+      <div>
+        <p class="section-label">Charter Available</p>
+        <h2 class="section-title" style="color:white">Meet <em style="color:var(--sky)">El Jefe</em></h2>
+        <div class="divider" style="background:var(--sky)"></div>
+        <p>El Jefe is a classic Luhrs sport fisher built for the legendary waters of the Sea of Cortez — one of the world's great fishing grounds. Whether you're chasing marlin, dorado, or yellowfin tuna, or simply wanting to explore hidden coves and pristine coastline, El Jefe delivers the full Baja experience.</p>
+        <p>Fully equipped and crewed, she's available exclusively to Mesa del Mar guests. Combine a stay at the casita with a day on the water for the ultimate Baja adventure.</p>
+        <div class="boat-specs">
+          <div class="boat-spec">
+            <div class="boat-spec-label">Vessel</div>
+            <div class="boat-spec-val">Luhrs Sport Fisher</div>
+          </div>
+          <div class="boat-spec">
+            <div class="boat-spec-label">Waters</div>
+            <div class="boat-spec-val">Sea of Cortez</div>
+          </div>
+          <div class="boat-spec">
+            <div class="boat-spec-label">Charter Rate</div>
+            <div class="boat-spec-val">$1,300 / day</div>
+          </div>
+          <div class="boat-spec">
+            <div class="boat-spec-label">Best Season</div>
+            <div class="boat-spec-val">Year-round</div>
+          </div>
+        </div>
+        <a href="#booking" class="btn btn-primary" onclick="document.querySelector('[data-tab=boat]').click()">Book El Jefe</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- INTERIORS -->
+<section style="background:var(--sand); padding:6rem 0;" id="interiors">
+  <div class="container">
+    <div style="text-align:center; margin-bottom:3rem;">
+      <p class="section-label">Inside La Casita</p>
+      <h2 class="section-title">Crafted with <em>care</em></h2>
+      <div class="divider" style="margin:1rem auto;"></div>
+      <p style="max-width:600px;margin:0 auto;color:#6b5a4a;line-height:1.8;">Custom teak cabinetry, hand-selected granite countertops, woven rattan furniture, and floor-to-ceiling sliding glass doors that blur the line between inside and out.</p>
+    </div>
+
+    <!-- Kitchen feature -->
+    <div class="intro-grid" style="margin-bottom:4rem;">
+      <div class="intro-image">
+        <img src="images/image11.jpg" alt="Casita kitchen" style="width:100%;height:460px;object-fit:cover;border-radius:2px;">
+      </div>
+      <div class="intro-text">
+        <p class="section-label">Kitchen</p>
+        <h3 class="section-title" style="font-size:1.8rem;">A <em>chef's</em> kitchen in the desert</h3>
+        <div class="divider"></div>
+        <p style="color:#6b5a4a;line-height:1.8;margin-bottom:1rem;">Custom teak wood cabinetry meets wild-grain granite countertops in a kitchen that manages to feel both rugged and refined. A generous island with bar seating, stainless appliances, and everything you need to cook a proper Baja feast.</p>
+        <p style="color:#6b5a4a;line-height:1.8;">Open to the dining and living area, it's the kind of kitchen that pulls everyone together — morning coffee, fresh ceviche, or a cold Modelo after a day on El Jefe.</p>
+        <div class="amenities" style="margin-top:1.5rem;">
+          <div class="amenity"><div class="amenity-icon">🍳</div>Full gas range</div>
+          <div class="amenity"><div class="amenity-icon">☕</div>Coffee maker</div>
+          <div class="amenity"><div class="amenity-icon">🧊</div>Full refrigerator</div>
+          <div class="amenity"><div class="amenity-icon">🍽</div>Fully equipped</div>
+          <div class="amenity"><div class="amenity-icon">🪑</div>Island bar seating</div>
+          <div class="amenity"><div class="amenity-icon">❄️</div>A/C throughout</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bedrooms grid -->
+    <p class="section-label" style="text-align:center;margin-bottom:0.5rem;">Bedrooms</p>
+    <h3 class="section-title" style="text-align:center;font-size:1.8rem;margin-bottom:2.5rem;">Sleep with the <em>desert</em> at your door</h3>
+    <div class="grid-3col">
+      <div style="border-radius:2px;overflow:hidden;">
+        <img src="images/image12.jpg" alt="Bedroom with en-suite" class="grid-card-img">
+        <div style="padding:1rem;background:white;min-height:7rem;">
+          <p style="font-family:'Playfair Display',serif;font-size:1rem;color:var(--deep);">Master Suite</p>
+          <p style="font-size:0.85rem;color:#7a6a5a;margin-top:0.3rem;">King bed · peek-a-boo ocean view · sliding doors open to palapa terrace & hammock</p>
+        </div>
+      </div>
+      <div style="border-radius:2px;overflow:hidden;">
+        <img src="images/image13.jpg" alt="Bedroom with teak wardrobe" class="grid-card-img">
+        <div style="padding:1rem;background:white;min-height:7rem;">
+          <p style="font-family:'Playfair Display',serif;font-size:1rem;color:var(--deep);">Bedroom Two</p>
+          <p style="font-size:0.85rem;color:#7a6a5a;margin-top:0.3rem;">Queen bed · peek-a-boo ocean view · palapa terrace &amp; hammock</p>
+        </div>
+      </div>
+      <div style="border-radius:2px;overflow:hidden;">
+        <img src="images/image14.jpg" alt="Third bedroom" class="grid-card-img">
+        <div style="padding:1rem;background:white;min-height:7rem;">
+          <p style="font-family:'Playfair Display',serif;font-size:1rem;color:var(--deep);">Bedroom Three</p>
+          <p style="font-size:0.85rem;color:#7a6a5a;margin-top:0.3rem;">Queen bed · courtyard view</p>
+        </div>
+      </div>
+    </div>
+
+    
+    <!-- Bathrooms -->
+    <div style="margin-top:4rem;">
+      <p class="section-label" style="text-align:center;margin-bottom:0.5rem;">Bathrooms</p>
+      <h3 class="section-title" style="text-align:center;font-size:1.8rem;margin-bottom:2.5rem;">Spa-worthy <em>details</em></h3>
+      <div class="grid-3col">
+        <div style="border-radius:2px;overflow:hidden;">
+          <img src="images/image15.jpg" alt="Rain shower" style="width:100%;height:340px;object-fit:cover;object-position:center top;transition:transform 0.5s;" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">
+          <div style="padding:1rem;background:white;min-height:7rem;">
+            <p style="font-family:'Playfair Display',serif;font-size:1rem;color:var(--deep);">Master Suite Rain Shower</p>
+            <p style="font-size:0.85rem;color:#7a6a5a;margin-top:0.3rem;">Floor-to-ceiling travertine tile · garden window</p>
+          </div>
+        </div>
+        <div style="border-radius:2px;overflow:hidden;">
+          <img src="images/image16.jpg" alt="Vanity with round teak mirror" style="width:100%;height:340px;object-fit:cover;transition:transform 0.5s;" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">
+          <div style="padding:1rem;background:white;min-height:7rem;">
+            <p style="font-family:'Playfair Display',serif;font-size:1rem;color:var(--deep);">Bathroom Two</p>
+            <p style="font-size:0.85rem;color:#7a6a5a;margin-top:0.3rem;">Hand-selected granite vanity · round teak mirror · rain shower with garden window</p>
+          </div>
+        </div>
+        <div style="border-radius:2px;overflow:hidden;">
+          <img src="images/image17.jpg" alt="Master bathroom" style="width:100%;height:340px;object-fit:cover;transition:transform 0.5s;" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'">
+          <div style="padding:1rem;background:white;min-height:7rem;">
+            <p style="font-family:'Playfair Display',serif;font-size:1rem;color:var(--deep);">Bathroom Three</p>
+            <p style="font-size:0.85rem;color:#7a6a5a;margin-top:0.3rem;">Hand-selected granite vanity · custom square teak mirror & cabinets · rain shower</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Living Room -->
+    <div style="margin-top:4rem;">
+      <div class="intro-grid">
+        <div class="intro-text">
+          <p class="section-label">Living Area</p>
+          <h3 class="section-title" style="font-size:1.8rem;">Gather, relax, <em>unwind</em></h3>
+          <div class="divider"></div>
+          <p style="color:#6b5a4a;line-height:1.8;margin-bottom:1rem;">The open-plan living room flows seamlessly from kitchen to dining to lounge — all under one roof with A/C throughout and a live-edge mesquite coffee table anchoring the space.</p>
+          <p style="color:#6b5a4a;line-height:1.8;">Sink into the leather armchairs after a day on El Jefe, stream your favorite shows on the smart TV, or step straight out to the palapa terrace through the sliding glass doors.</p>
+          <div class="amenities" style="margin-top:1.5rem;">
+            <div class="amenity"><div class="amenity-icon">📺</div>Smart TV</div>
+            <div class="amenity"><div class="amenity-icon">🛋</div>Leather seating</div>
+            <div class="amenity"><div class="amenity-icon">❄️</div>Full A/C</div>
+            <div class="amenity"><div class="amenity-icon">🚪</div>Open plan layout</div>
+            <div class="amenity"><div class="amenity-icon">🌿</div>Terrace access</div>
+            <div class="amenity"><div class="amenity-icon">🍽</div>Dining for 6+</div>
+          </div>
+        </div>
+        <div class="intro-image">
+          <img src="images/image18.jpg" alt="Living room" style="width:100%;height:460px;object-fit:cover;border-radius:2px;">
+        </div>
+      </div>
+    </div>
+
+
+    <!-- Kitchen/dining wide shot -->
+    
+  </div>
+</section>
+
+<!-- BOOKING -->
+<section class="booking" id="booking">
+  <div class="container">
+    <p class="section-label">Reservations</p>
+    <h2 class="section-title">Plan your <em>escape</em></h2>
+    <div class="divider"></div>
+
+    <div class="booking-tabs">
+      <button class="booking-tab active" data-tab="casita" onclick="switchTab('casita')">🏡 La Casita — $600/night</button>
+      <button class="booking-tab" data-tab="boat" onclick="switchTab('boat')">⚓ El Jefe — $1,300/day</button>
+    </div>
+
+    <!-- CASITA PANEL -->
+    <div class="booking-panel active" id="panel-casita">
+      <div class="listing-info">
+        <img class="listing-img" src="images/image19.jpg" alt="La Casita bedroom">
+        <h3 class="listing-title">La Casita — Mesa del Mar</h3>
+        <div class="listing-price">$600 <sub>/ night</sub></div>
+        <p class="listing-desc">Three-bedroom, three-bathroom private estate in Baja California Sur. Palapa terrace, hammock, desert gardens, sweeping views, and access to the Sea of Cortez.</p>
+        <ul class="listing-features">
+          <li>3 bedrooms · 3 full bathrooms</li>
+          <li>Private covered palapa terrace with hammock</li>
+          <li>Circular drive with stone fountain</li>
+          <li>Shared infinity pool — mountain &amp; sea views</li>
+          <li>Smart TV · leather lounge · live-edge coffee table</li>
+          <li>Spectacular star gazing — zero light pollution</li>
+          <li>Direct access to the Sea of Cortez</li>
+          <li>Bougainvillea gardens & desert landscapes</li>
+          <li>Also listed on Airbnb</li>
+        </ul>
+      </div>
+      <div>
+        <div class="availability-note">
+          <span>📅</span>
+          <span>🔄 Loading live availability from Airbnb... Booked dates will be flagged automatically. For the most accurate availability, <a href="https://www.airbnb.com/rooms/21548101" target="_blank" style="color:var(--terra)">view our Airbnb listing</a>.</span>
+        </div>
+        <div class="booking-form">
+          <h4 class="form-title">Request to Book</h4>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Check-in</label>
+              <input type="date" id="casita-checkin" min="" onchange="calcTotal('casita')">
+            </div>
+            <div class="form-group">
+              <label>Check-out</label>
+              <input type="date" id="casita-checkout" min="" onchange="calcTotal('casita')">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Guests</label>
+            <select id="casita-guests">
+              <option>1 guest</option>
+              <option>2 guests</option>
+              <option>3 guests</option>
+              <option selected>4 guests</option>
+              <option>5 guests</option>
+              <option>6 guests</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>First Name</label>
+              <input type="text" placeholder="Jane">
+            </div>
+            <div class="form-group">
+              <label>Last Name</label>
+              <input type="text" placeholder="Smith">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" placeholder="jane@example.com">
+          </div>
+          <div class="form-group">
+            <label>Phone</label>
+            <input type="tel" placeholder="+1 (555) 000-0000">
+          </div>
+          <div class="form-group">
+            <label>Message (optional)</label>
+            <textarea rows="2" placeholder="Special requests, questions..."></textarea>
+          </div>
+          <div class="form-total">
+            <span class="form-total-label" id="casita-nights-label">Select dates to see total</span>
+            <span class="form-total-price" id="casita-total"></span>
+          </div>
+
+          <!-- STRIPE PAYMENT NOTICE -->
+          <div class="stripe-notice show" id="casita-stripe-notice" style="display:block;">
+            <p>💳 After submitting, you'll be redirected to our secure <strong>Stripe checkout</strong> to complete payment. Your card is authorized but <strong>not charged</strong> until we confirm availability within 24 hours.</p>
+          </div>
+
+          <button class="btn btn-primary" style="width:100%" id="casita-submit-btn" onclick="submitBooking('casita')">Request & Pay</button>
+          <p class="form-note">We'll confirm availability and send a receipt within 24 hours. No charge until confirmed.</p>
+        </div>
+        <div class="success-msg" id="casita-success">
+          ✓ Your booking request has been received! We'll be in touch within 24 hours.
+        </div>
+      </div>
+    </div>
+
+    <!-- BOAT PANEL -->
+    <div class="booking-panel" id="panel-boat">
+      <div class="listing-info">
+        <img class="listing-img" src="images/image20.jpg" alt="El Jefe">
+        <h3 class="listing-title">El Jefe — Luhrs Sport Fisher</h3>
+        <div class="listing-price">$1,300 <sub>/ day</sub></div>
+        <p class="listing-desc">A full-day charter aboard El Jefe in the world-renowned Sea of Cortez. Fishing, cruising, snorkeling, or simply exploring — the Baja coast is yours for the day.</p>
+        <ul class="listing-features">
+          <li>Full-day charter (approx. 8 hours)</li>
+          <li>Classic Luhrs sport fishing vessel</li>
+          <li>Sea of Cortez — world-class fishing waters</li>
+          <li>Marlin, dorado, yellowfin tuna & more</li>
+          <li>Available exclusively to property guests</li>
+          <li>Contact host for crew & tackle details</li>
+        </ul>
+      </div>
+      <div>
+        <div class="booking-form">
+          <h4 class="form-title">Book El Jefe</h4>
+          <div class="form-group">
+            <label>Charter Date</label>
+            <input type="date" id="boat-date" min="" onchange="calcTotal('boat')">
+          </div>
+          <div class="form-group">
+            <label>Number of Anglers / Guests</label>
+            <select>
+              <option>1</option><option>2</option><option selected>3</option>
+              <option>4</option><option>5</option><option>6</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Trip Type</label>
+            <select>
+              <option>Sport Fishing</option>
+              <option>Coastal Cruise / Sightseeing</option>
+              <option>Snorkeling Excursion</option>
+              <option>Combination — Fishing & Cruise</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>First Name</label>
+              <input type="text" placeholder="Jane">
+            </div>
+            <div class="form-group">
+              <label>Last Name</label>
+              <input type="text" placeholder="Smith">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" placeholder="jane@example.com">
+          </div>
+          <div class="form-group">
+            <label>Phone</label>
+            <input type="tel" placeholder="+1 (555) 000-0000">
+          </div>
+          <div class="form-group">
+            <label>Notes</label>
+            <textarea rows="2" placeholder="Target species, special requests..."></textarea>
+          </div>
+          <div class="form-total">
+            <span class="form-total-label" id="boat-nights-label">1 day charter</span>
+            <span class="form-total-price" id="boat-total">$1,300</span>
+          </div>
+          <button class="btn btn-primary" style="width:100%" onclick="submitBooking('boat')">Send Charter Request</button>
+          <p class="form-note">Charter is available exclusively to Mesa del Mar guests. We'll confirm your dates within 24 hours.</p>
+        </div>
+        <div class="success-msg" id="boat-success">
+          ✓ Your charter request has been received! Captain will be in touch within 24 hours.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- LOCATION -->
+<section class="location" id="location">
+  <div class="container">
+    <div class="location-grid">
+      <div>
+        <p class="section-label">Getting Here</p>
+        <h2 class="section-title">Find us in <em>Baja</em></h2>
+        <div class="divider"></div>
+        <p>Mesa del Mar sits on the East Cape of Baja California Sur — a stretch of coastline that remains one of Mexico's last great wilderness escapes. Close enough to civilization for convenience, remote enough to feel like you've discovered it yourself.</p>
+        <div class="location-detail">
+          <span class="location-icon">✈</span>
+          <div class="location-detail-text">
+            <strong>Nearest Airport</strong>
+            <span>Los Cabos International (SJD) — approx. 45 min to 1 hr by car</span>
+          </div>
+        </div>
+        <div class="location-detail">
+          <span class="location-icon">🚗</span>
+          <div class="location-detail-text">
+            <strong>By Car</strong>
+            <span>Scenic drive north along the East Cape road. Detailed directions provided upon booking.</span>
+          </div>
+        </div>
+        <div class="location-detail">
+          <span class="location-icon">🌊</span>
+          <div class="location-detail-text">
+            <strong>The Sea of Cortez</strong>
+            <span>Jacques Cousteau called it "the aquarium of the world." You'll see why.</span>
+          </div>
+        </div>
+        <div class="location-detail">
+          <span class="location-icon">🌡</span>
+          <div class="location-detail-text">
+            <strong>Climate</strong>
+            <span>Warm and sunny year-round. Best fishing: summer–fall. Best weather: Oct–May.</span>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div style="border-radius:2px;overflow:hidden;margin-bottom:2rem;">
+          <img src="images/image21.jpg" alt="The mountain that watches over Mesa del Mar" style="width:100%;height:280px;object-fit:cover;object-position:center 40%;">
+        </div>
+        <div class="location-map" style="position:relative;cursor:pointer;" onclick="window.open('https://www.google.com/maps/search/El+Leonero+Ranch+East+Cape+Baja+California+Sur+Mexico/@23.55,-109.75,12z','_blank')">
+          <div style="
+            width:100%;height:100%;
+            background:linear-gradient(135deg, #c4b89a 0%, #a89070 50%, #8a7055 100%);
+            display:flex;flex-direction:column;align-items:center;justify-content:center;
+            gap:1rem;
+          ">
+            <div style="font-size:3rem;">🗺️</div>
+            <div style="text-align:center;">
+              <p style="font-family:'Playfair Display',serif;font-size:1.2rem;color:white;margin-bottom:0.3rem;">East Cape, Baja California Sur</p>
+              <p style="font-size:0.85rem;color:rgba(255,255,255,0.8);letter-spacing:0.1em;">Click to open in Google Maps</p>
+            </div>
+            <div style="
+              background:var(--terra);color:white;
+              padding:0.6rem 1.5rem;border-radius:2px;
+              font-family:'Jost',sans-serif;font-size:0.8rem;
+              letter-spacing:0.15em;text-transform:uppercase;
+            ">Open Map →</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+<!-- FAQ -->
+<section style="background:var(--white); padding:6rem 0;" id="faq">
+  <div class="container">
+    <div style="text-align:center; margin-bottom:3rem;">
+      <p class="section-label">FAQ</p>
+      <h2 class="section-title">Common <em>questions</em></h2>
+      <div class="divider" style="margin:1rem auto;"></div>
+    </div>
+    <div style="max-width:780px; margin:0 auto;">
+
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          How do we get there?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-a">
+          <p>We recommend renting a car at Los Cabos International Airport (SJD), about 45 minutes to an hour away. The drive along the East Cape is scenic and straightforward — detailed directions will be provided upon booking.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          How do I make a reservation?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-a">
+          <p>You can book directly through this website using the reservation form above, or find us on Airbnb. Booking direct is the easiest way to reach us with questions or special requests.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          What currency should I bring?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-a">
+          <p>US dollars are widely accepted in the East Cape area and are encouraged. You're welcome to bring pesos as well, but dollars will rarely be turned away.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          Can I arrange a private cook?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-a">
+          <p>Yes — a private cook can be arranged by request. Just let us know when booking and we'll take care of the details.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          Are ATVs available? Can I book other types of boats?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-a">
+          <p>Absolutely. We can recommend a local company that delivers ATVs directly to the property. For those looking for a different on-water experience, pangas and other boat types can also be reserved through nearby fleets — just ask us and we'll point you in the right direction.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section style="background:var(--sand); padding:6rem 0;" id="contact">
+  <div class="container">
+    <div style="text-align:center; max-width:600px; margin:0 auto;">
+      <p class="section-label">Get in Touch</p>
+      <h2 class="section-title">We'd love to <em>hear</em> from you</h2>
+      <div class="divider" style="margin:1rem auto;"></div>
+      <p style="color:#6b5a4a; line-height:1.9; margin-bottom:2rem;">Whether you have questions about the property, want to discuss a custom stay, or just want to say hello — we're happy to help. Reach us directly by email and we'll get back to you promptly.</p>
+      <a href="/cdn-cgi/l/email-protection#8feceefceefdeee1ece7e0e3eae0e1eafde0cfe8e2eee6e3a1ece0e2" class="btn btn-primary" style="font-size:0.9rem;"><span class="__cf_email__" data-cfemail="7b181a081a091a15181314171e14151e09143b1c161a121755181416">[email&#160;protected]</span></a>
+    </div>
+  </div>
+</section>
+
+<!-- FULL PHOTO GALLERY -->
+<section style="background:var(--deep); padding:6rem 0;" id="gallery-full">
+  <div class="container">
+    <div style="text-align:center; margin-bottom:3rem;">
+      <p class="section-label" style="color:var(--gold);">Photo Gallery</p>
+      <h2 class="section-title" style="color:white;">See it all in <em style="color:var(--gold);">full</em></h2>
+      <div class="divider" style="background:var(--gold);margin:1rem auto;"></div>
+      <p style="color:rgba(255,255,255,0.6);max-width:520px;margin:0 auto;line-height:1.8;">Every corner of Mesa del Mar, from the sculptured entrance gate to the Milky Way above the palms.</p>
+    </div>
+
+    <!-- GALLERY TABS -->
+    <div style="display:flex;gap:0;justify-content:center;margin-bottom:2.5rem;border-bottom:1px solid rgba(255,255,255,0.15);">
+      <button class="gtab active" onclick="showGallery('all')" style="padding:0.8rem 1.8rem;background:none;border:none;color:rgba(255,255,255,0.5);font-family:'Jost',sans-serif;font-size:0.8rem;letter-spacing:0.18em;text-transform:uppercase;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all 0.2s;" onmouseover="this.style.color='white'" onmouseout="this.classList.contains('active')||( this.style.color='rgba(255,255,255,0.5)')">All</button>
+      <button class="gtab" onclick="showGallery('exterior')" style="padding:0.8rem 1.8rem;background:none;border:none;color:rgba(255,255,255,0.5);font-family:'Jost',sans-serif;font-size:0.8rem;letter-spacing:0.18em;text-transform:uppercase;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all 0.2s;" onmouseover="this.style.color='white'" onmouseout="this.classList.contains('active')||(this.style.color='rgba(255,255,255,0.5)')">Exterior</button>
+      <button class="gtab" onclick="showGallery('interior')" style="padding:0.8rem 1.8rem;background:none;border:none;color:rgba(255,255,255,0.5);font-family:'Jost',sans-serif;font-size:0.8rem;letter-spacing:0.18em;text-transform:uppercase;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all 0.2s;" onmouseover="this.style.color='white'" onmouseout="this.classList.contains('active')||(this.style.color='rgba(255,255,255,0.5)')">Interior</button>
+      <button class="gtab" onclick="showGallery('pool')" style="padding:0.8rem 1.8rem;background:none;border:none;color:rgba(255,255,255,0.5);font-family:'Jost',sans-serif;font-size:0.8rem;letter-spacing:0.18em;text-transform:uppercase;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all 0.2s;" onmouseover="this.style.color='white'" onmouseout="this.classList.contains('active')||(this.style.color='rgba(255,255,255,0.5)')">Pool</button>
+      <button class="gtab" onclick="showGallery('night')" style="padding:0.8rem 1.8rem;background:none;border:none;color:rgba(255,255,255,0.5);font-family:'Jost',sans-serif;font-size:0.8rem;letter-spacing:0.18em;text-transform:uppercase;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all 0.2s;" onmouseover="this.style.color='white'" onmouseout="this.classList.contains('active')||(this.style.color='rgba(255,255,255,0.5)')">Night Sky</button>
+    </div>
+
+    <!-- MASONRY GRID -->
+    <div id="masonry-gallery" style="columns:3;column-gap:0.75rem;">
+
+      <!-- FROM INTRO GALLERY -->
+      <div class="gitem exterior all" style="break-inside:avoid;margin-bottom:0.75rem;overflow:hidden;border-radius:2px;cursor:pointer;">
+        <img src="images/image3.jpg" alt="Hammock at sunset" style="width:100%;display:block;transition:transform 0.5s;" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+      </div>
+      <div class="gitem exterior all" style="break-inside:avoid;margin-bottom:0.75rem;overflow:hidden;border-radius:2px;cursor:pointer;">
+        <img src="images/image4.jpg" alt="Pool reflection at dusk" style="width:100%;display:block;transition:transform 0.5s;" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+      </div>
+      <div class="gitem exterior all" style="break-inside:avoid;margin-bottom:0.75rem;overflow:hidden;border-radius:2px;cursor:pointer;">
+        <img src="images/image5.jpg" alt="Casita front walkway" style="width:100%;display:block;transition:transform 0.5s;" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+      </div>
+      <div class="gitem exterior all" style="break-inside:avoid;margin-bottom:0.75rem;overflow:hidden;border-radius:2px;cursor:pointer;">
+        <img src="images/image6.jpg" alt="Estate stone fountain" style="width:100%;display:block;transition:transform 0.5s;" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+      </div>
+      <div class="gitem exterior all" style="break-inside:avoid;margin-bottom:0.75rem;overflow:hidden;border-radius:2px;cursor:pointer;">
+        <img src="images/image7.jpg" alt="Wagon wheel at golden hour" style="width:100%;display:block;transition:transform 0.5s;" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+      </div>
+
+      <!-- EXTERIOR -->
+
+      <div class="gitem exterior all" style="break-inside:avoid;margin-bottom:0.75rem;overflow:hidden;border-radius:2px;cursor:pointer;">
+        <img src="images/image23.jpg" alt="Gate from outside" style="width:100%;display:block;transition:transform 0.5s;" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+      </div>
+      <div class="gitem exterior all" style="break-inside:avoid;margin-bottom:0.75rem;overflow:hidden;border-radius:2px;cursor:pointer;">
+        <img src="images/image24.jpg" alt="Stone guardian sculpture" style="width:100%;display:block;transition:transform 0.5s;" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+      </div>
+
+      <div class="gitem exterior all" style="break-inside:avoid;margin-bottom:0.75rem;overflow:hidden;border-radius:2px;cursor:pointer;">
+        <img src="images/image26.jpg" alt="Cactus garden driveway" style="width:100%;display:block;transition:transform 0.5s;" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+      </div>
+      <div class="gitem exterior all" style="break-inside:avoid;margin-bottom:0.75rem;overflow:hidden;border-radius:2px;cursor:pointer;">
+        <img src="images/image27.jpg" alt="Winding path to the sea" style="width:100%;display:block;transition:transform 0.5s;" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+      </div>
+      <div class="gitem exterior all" style="break-inside:avoid;margin-bottom:0.75rem;overflow:hidden;border-radius:2px;cursor:pointer;">
+        <img src="images/image28.jpg" alt="Palms with sea view" style="width:100%;display:block;transition:transform 0.5s;" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+      </div>
+      <div class="gitem exterior all" style="break-inside:avoid;margin-bottom:0.75rem;overflow:hidden;border-radius:2px;cursor:pointer;">
+        <img src="images/image29.jpg" alt="Casita through the trees" style="width:100%;display:block;transition:transform 0.5s;" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+      </div>
+      <div class="gitem exterior all" style="break-inside:avoid;margin-bottom:0.75rem;overflow:hidden;border-radius:2px;cursor:pointer;">
+        <img src="images/image30.jpg" alt="Casita with hammock" style="width:100%;display:block;transition:transform 0.5s;" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+      </div>
+
+
+      <div class="gitem exterior all" style="break-inside:avoid;margin-bottom:0.75rem;overflow:hidden;border-radius:2px;cursor:pointer;">
+        <img src="images/image31.jpg" alt="Mountain view from the estate" style="width:100%;display:block;transition:transform 0.5s;" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+      </div>
+
+      <div class="gitem exterior all" style="break-inside:avoid;margin-bottom:0.75rem;overflow:hidden;border-radius:2px;cursor:pointer;">
+        <img src="images/image33.jpg" alt="Prickly pear cactus with mountain" style="width:100%;display:block;transition:transform 0.5s;" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+      </div>
+
+      <!-- INTERIOR -->
+      <div class="gitem interior all" style="break-inside:avoid;margin-bottom:0.75rem;overflow:hidden;border-radius:2px;cursor:pointer;">
+        <img src="images/image34.jpg" alt="Kitchen island" style="width:100%;display:block;transition:transform 0.5s;" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+      </div>
+      <div class="gitem interior all" style="break-inside:avoid;margin-bottom:0.75rem;overflow:hidden;border-radius:2px;cursor:pointer;">
+        <img src="images/image35.jpg" alt="Open plan kitchen and dining" style="width:100%;display:block;transition:transform 0.5s;" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+      </div>
+      <div class="gitem interior all" style="break-inside:avoid;margin-bottom:0.75rem;overflow:hidden;border-radius:2px;cursor:pointer;">
+        <img src="images/image36.jpg" alt="Living room" style="width:100%;display:block;transition:transform 0.5s;" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+      </div>
+
+      <div class="gitem interior all" style="break-inside:avoid;margin-bottom:0.75rem;overflow:hidden;border-radius:2px;cursor:pointer;">
+        <img src="images/image38.jpg" alt="Bedroom with teak wardrobe" style="width:100%;display:block;transition:transform 0.5s;" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+      </div>
+      <div class="gitem interior all" style="break-inside:avoid;margin-bottom:0.75rem;overflow:hidden;border-radius:2px;cursor:pointer;">
+        <img src="images/image39.jpg" alt="Rain shower" style="width:100%;display:block;transition:transform 0.5s;" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+      </div>
+      <div class="gitem interior all" style="break-inside:avoid;margin-bottom:0.75rem;overflow:hidden;border-radius:2px;cursor:pointer;">
+        <img src="images/image40.jpg" alt="Granite vanity" style="width:100%;display:block;transition:transform 0.5s;" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+      </div>
+      <div class="gitem interior all" style="break-inside:avoid;margin-bottom:0.75rem;overflow:hidden;border-radius:2px;cursor:pointer;">
+        <img src="images/image41.jpg" alt="Master bathroom" style="width:100%;display:block;transition:transform 0.5s;" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+      </div>
+
+      <!-- POOL -->
+      <div class="gitem pool all" style="break-inside:avoid;margin-bottom:0.75rem;overflow:hidden;border-radius:2px;cursor:pointer;">
+        <img src="images/image42.jpg" alt="Pool aerial sea view" style="width:100%;display:block;transition:transform 0.5s;" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+      </div>
+      
+      <div class="gitem pool all" style="break-inside:avoid;margin-bottom:0.75rem;overflow:hidden;border-radius:2px;cursor:pointer;">
+        <img src="images/image43.jpg" alt="Pool reflection at dusk" style="width:100%;display:block;transition:transform 0.5s;" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+      </div>
+      <div class="gitem pool all" style="break-inside:avoid;margin-bottom:0.75rem;overflow:hidden;border-radius:2px;cursor:pointer;">
+        <img src="images/image44.jpg" alt="Infinity pool mountain" style="width:100%;display:block;transition:transform 0.5s;" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+      </div>
+
+      <!-- NIGHT SKY -->
+      <div class="gitem night all" style="break-inside:avoid;margin-bottom:0.75rem;overflow:hidden;border-radius:2px;cursor:pointer;">
+        <img src="images/image45.jpg" alt="Milky Way over the palms" style="width:100%;display:block;transition:transform 0.5s;" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+      </div>
+      <div class="gitem night all" style="break-inside:avoid;margin-bottom:0.75rem;overflow:hidden;border-radius:2px;cursor:pointer;">
+        <img src="images/image46.jpg" alt="Milky Way portrait" style="width:100%;display:block;transition:transform 0.5s;" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+      </div>
+
+    </div><!-- end masonry -->
+
+    <!-- Lightbox -->
+    <div id="lightbox" onclick="closeLightbox()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:2000;align-items:center;justify-content:center;cursor:zoom-out;">
+      <img id="lb-img" src="" style="max-width:90vw;max-height:90vh;object-fit:contain;border-radius:2px;box-shadow:0 20px 60px rgba(0,0,0,0.5);">
+      <span style="position:absolute;top:1.5rem;right:2rem;color:white;font-size:2rem;cursor:pointer;opacity:0.6;" onclick="closeLightbox()">✕</span>
+    </div>
+
+  </div>
+</section>
+
+<script>
+// Gallery filtering
+function showGallery(cat) {
+  document.querySelectorAll('.gtab').forEach(t => {
+    t.classList.remove('active');
+    t.style.color='rgba(255,255,255,0.5)';
+    t.style.borderBottom='2px solid transparent';
+  });
+  event.target.classList.add('active');
+  event.target.style.color='white';
+  event.target.style.borderBottom='2px solid var(--gold)';
+
+  document.querySelectorAll('.gitem').forEach(item => {
+    if (cat === 'all' || item.classList.contains(cat)) {
+      item.style.display='block';
+    } else {
+      item.style.display='none';
+    }
+  });
+}
+
+// Lightbox
+document.querySelectorAll('.gitem img').forEach(img => {
+  img.addEventListener('click', function() {
+    document.getElementById('lb-img').src = this.src;
+    const lb = document.getElementById('lightbox');
+    lb.style.display='flex';
+  });
+});
+function closeLightbox() {
+  document.getElementById('lightbox').style.display='none';
+}
+document.addEventListener('keydown', e => { if(e.key==='Escape') closeLightbox(); });
+
+// Set active tab style on load
+document.querySelector('.gtab.active').style.borderBottom='2px solid var(--gold)';
+document.querySelector('.gtab.active').style.color='white';
+</script>
+
+<!-- FOOTER -->
+<footer>
+  <h3>Mesa del Mar</h3>
+  <p style="margin:0.5rem 0 1rem">Baja California Sur, Mexico &nbsp;·&nbsp; <a href="/cdn-cgi/l/email-protection#234042504251424d404b4c4f464c4d46514c63444e424a4f0d404c4e" style="color:var(--gold);"><span class="__cf_email__" data-cfemail="335052405241525d505b5c5f565c5d56415c73545e525a5f1d505c5e">[email&#160;protected]</span></a></p>
+  <p style="font-size:0.78rem;opacity:0.5">© 2026 Mesa del Mar · mesadelmar.mx · All rights reserved</p>
+</footer>
+
+<script>
+// FAQ accordion
+function toggleFaq(btn) {
+  const answer = btn.nextElementSibling;
+  const isOpen = btn.classList.contains('open');
+  // Close all
+  document.querySelectorAll('.faq-q').forEach(q => {
+    q.classList.remove('open');
+    q.nextElementSibling.style.display = 'none';
+  });
+  // Open clicked if it was closed
+  if (!isOpen) {
+    btn.classList.add('open');
+    answer.style.display = 'block';
+  }
+}
+
+// Nav scroll
+window.addEventListener('scroll', () => {
+  document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 60);
+});
+
+// Hamburger menu
+function toggleMenu() {
+  const menu = document.getElementById('mobile-menu');
+  const burger = document.getElementById('hamburger');
+  menu.classList.toggle('open');
+  burger.classList.toggle('open');
+  document.body.style.overflow = menu.classList.contains('open') ? 'hidden' : '';
+}
+function closeMenu() {
+  document.getElementById('mobile-menu').classList.remove('open');
+  document.getElementById('hamburger').classList.remove('open');
+  document.body.style.overflow = '';
+}
+// Close menu on escape key
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closeMenu(); });
+
+
+
+
+// ============================================================
+// STRIPE PAYMENT INTEGRATION
+// ============================================================
+const STRIPE_PUBLISHABLE_KEY = 'pk_test_51TEGBwPtrUNuScehU32EJUatvtaW05kGuGxhPweknuBr0PZgV9NJnl5mmi0f8hP1rQdoRdFyBMhQjG0KWLi94S6d00Wv9cywhC'; // TODO: replace with pk_live_xxxx
+let stripeInstance = null;
+let stripeElements = null;
+let paymentElement = null;
+
+function getStripe() {
+  if (!stripeInstance && STRIPE_PUBLISHABLE_KEY !== 'YOUR_STRIPE_PUBLISHABLE_KEY') {
+    stripeInstance = Stripe(STRIPE_PUBLISHABLE_KEY);
+  }
+  return stripeInstance;
+}
+
+async function initStripePayment(type, amount, bookingData) {
+  const stripe = getStripe();
+  if (!stripe) {
+    alert('Payment system not yet configured. Please contact us at casarancholeonero@gmail.com');
+    return false;
+  }
+
+  try {
+    // Call Netlify Function to create PaymentIntent
+    const response = await fetch('/.netlify/functions/create-payment-intent', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...bookingData, type, amount })
+    });
+
+    if (!response.ok) throw new Error('Could not initialize payment');
+    const { clientSecret } = await response.json();
+
+    // Mount Stripe Payment Element
+    const appearance = {
+      theme: 'stripe',
+      variables: {
+        colorPrimary: '#c4714a',
+        colorBackground: '#fdfaf6',
+        fontFamily: 'Jost, sans-serif',
+        borderRadius: '2px',
+      }
+    };
+
+    stripeElements = stripe.elements({ appearance, clientSecret });
+    paymentElement = stripeElements.create('payment');
+
+    // Show payment modal
+    showStripeModal(stripe, clientSecret, bookingData);
+    return true;
+
+  } catch (err) {
+    console.error('Stripe init error:', err);
+    alert('Payment system error. Please try again or email casarancholeonero@gmail.com');
+    return false;
+  }
+}
+
+function showStripeModal(stripe, clientSecret, bookingData) {
+  // Create modal if it doesn't exist
+  let modal = document.getElementById('stripe-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'stripe-modal';
+    modal.style.cssText = `
+      position:fixed;inset:0;background:rgba(44,31,20,0.7);z-index:3000;
+      display:flex;align-items:center;justify-content:center;padding:1rem;
+    `;
+    modal.innerHTML = `
+      <div style="background:white;border-radius:4px;padding:2rem;max-width:480px;width:100%;max-height:90vh;overflow-y:auto;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+          <h3 style="font-family:'Playfair Display',serif;font-size:1.3rem;color:#2c1f14;">Complete Payment</h3>
+          <button onclick="closeStripeModal()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:#999;">✕</button>
+        </div>
+        <div style="background:#f0e8d8;border-radius:2px;padding:1rem;margin-bottom:1.5rem;font-size:0.85rem;color:#5a4a3a;line-height:1.7;">
+          <strong style="display:block;margin-bottom:0.3rem;">📋 Booking Summary</strong>
+          <span id="stripe-modal-summary"></span>
+        </div>
+        <div id="stripe-payment-element"></div>
+        <div id="stripe-error" style="color:#e57373;font-size:0.85rem;margin-top:0.75rem;display:none;"></div>
+        <button id="stripe-pay-btn" onclick="confirmStripePayment()" style="
+          width:100%;margin-top:1.5rem;padding:1rem;
+          background:#c4714a;color:white;border:none;border-radius:2px;
+          font-family:'Jost',sans-serif;font-size:0.85rem;letter-spacing:0.15em;
+          text-transform:uppercase;cursor:pointer;
+        ">Authorize Payment</button>
+        <p style="font-size:0.75rem;color:#9a8a7a;margin-top:0.75rem;text-align:center;line-height:1.6;">
+          Your card will be <strong>authorized but not charged</strong> until we confirm availability. You'll receive an email within 24 hours.
+        </p>
+      </div>
+    `;
+    document.body.appendChild(modal);
+  }
+
+  // Set summary text
+  const summary = document.getElementById('stripe-modal-summary');
+  if (summary) {
+    summary.innerHTML = bookingData.type === 'casita'
+      ? `La Casita · \${bookingData.nights} nights<br>\${bookingData.checkin} → \${bookingData.checkout}<br><strong>Total: $\${parseFloat(bookingData.amount).toLocaleString()}</strong> (incl. 3% card fee)`
+      : `El Jefe Charter · \${bookingData.checkin}<br><strong>Total: $1,339</strong> (incl. 3% card fee)`;
+  }
+
+  modal.style.display = 'flex';
+
+  // Mount payment element
+  setTimeout(() => {
+    if (paymentElement) {
+      paymentElement.mount('#stripe-payment-element');
+    }
+  }, 100);
+
+  // Store for confirm
+  modal._clientSecret = clientSecret;
+  modal._stripe = stripe;
+}
+
+function closeStripeModal() {
+  const modal = document.getElementById('stripe-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+async function confirmStripePayment() {
+  const modal = document.getElementById('stripe-modal');
+  const btn = document.getElementById('stripe-pay-btn');
+  const errEl = document.getElementById('stripe-error');
+  if (!modal || !modal._stripe) return;
+
+  btn.textContent = 'Processing...';
+  btn.disabled = true;
+  if (errEl) errEl.style.display = 'none';
+
+  const { error } = await modal._stripe.confirmPayment({
+    elements: stripeElements,
+    confirmParams: {
+      return_url: window.location.href + '?booking=confirmed',
+    },
+    redirect: 'if_required'
+  });
+
+  if (error) {
+    if (errEl) {
+      errEl.textContent = error.message;
+      errEl.style.display = 'block';
+    }
+    btn.textContent = 'Try Again';
+    btn.disabled = false;
+  } else {
+    // Payment authorized successfully
+    closeStripeModal();
+    // Show success message
+    const panel = document.getElementById('panel-casita');
+    if (panel) {
+      panel.querySelector('.booking-form').style.display = 'none';
+      document.getElementById('casita-success').style.display = 'block';
+      document.getElementById('casita-success').textContent =
+        '✓ Payment authorized! We will confirm your reservation at casarancholeonero@gmail.com within 24 hours.';
+    }
+  }
+}
+
+// Check for return from Stripe redirect
+window.addEventListener('load', () => {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('booking') === 'confirmed') {
+    document.querySelector('#booking')?.scrollIntoView({ behavior: 'smooth' });
+  }
+});
+
+// ============================================================
+// PAYMENT METHOD SELECTOR
+// ============================================================
+const ZELLE_EMAIL = 'ZELLE_EMAIL_PLACEHOLDER'; // TODO: replace with real Zelle email
+
+function selectPayment(method) {
+  // Update UI
+  document.getElementById('pay-card-label').classList.toggle('selected', method === 'card');
+  document.getElementById('pay-zelle-label').classList.toggle('selected', method === 'zelle');
+
+  // Show/hide instructions
+  const zelleInstr = document.getElementById('casita-zelle-instructions');
+  const stripeNote = document.getElementById('casita-stripe-notice');
+  if (zelleInstr) zelleInstr.classList.toggle('show', method === 'zelle');
+  if (stripeNote) stripeNote.classList.toggle('show', method === 'card');
+
+  // Update button text
+  const btn = document.getElementById('casita-submit-btn');
+  if (btn) btn.textContent = method === 'card' ? 'Request & Pay by Card' : 'Submit Zelle Request';
+
+  // Update total display with/without fee
+  updatePriceDisplay(method);
+}
+
+function updatePriceDisplay(method) {
+  const ci = document.getElementById('casita-checkin').value;
+  const co = document.getElementById('casita-checkout').value;
+  if (!ci || !co) return;
+  const nights = Math.round((new Date(co) - new Date(ci)) / (1000*60*60*24));
+  if (nights <= 0) return;
+
+  const baseTotal = nights * 600;
+  const cardTotal = Math.round(baseTotal * 1.03 + 0.30); // 3% + $0.30
+
+  const totalEl = document.getElementById('casita-total');
+  const labelEl = document.getElementById('casita-nights-label');
+
+  if (method === 'card') {
+    if (totalEl) totalEl.textContent = '$' + cardTotal.toLocaleString();
+    if (labelEl) labelEl.textContent = nights + ' night' + (nights>1?'s':'') + ' × $600 + 3% fee';
+  } else {
+    if (totalEl) totalEl.textContent = '$' + baseTotal.toLocaleString();
+    if (labelEl) labelEl.textContent = nights + ' night' + (nights>1?'s':'') + ' × $600';
+  }
+}
+
+// ============================================================
+// AIRBNB iCAL SYNC
+// Fetches blocked dates from Airbnb and disables them in the date picker
+// ============================================================
+const AIRBNB_ICAL_URL = 'https://www.airbnb.com/calendar/ical/21548101.ics?t=6f97db20045143bc9dbca26aa4ff086e';
+const CORS_PROXY = 'https://api.allorigins.win/raw?url=';
+
+let blockedRanges = []; // [{start: Date, end: Date}]
+
+async function loadAirbnbCalendar() {
+  try {
+    const res = await fetch(CORS_PROXY + encodeURIComponent(AIRBNB_ICAL_URL));
+    if (!res.ok) throw new Error('Failed to fetch calendar');
+    const ical = await res.text();
+    blockedRanges = parseIcal(ical);
+    applyBlockedDates();
+    console.log(`✓ Airbnb calendar loaded — ${blockedRanges.length} blocked period(s)`);
+  } catch (err) {
+    console.warn('Could not load Airbnb calendar:', err.message);
+    // Fail silently — form still works, just without live blocking
+  }
+}
+
+function parseIcal(text) {
+  const ranges = [];
+  const events = text.split('BEGIN:VEVENT');
+  for (let i = 1; i < events.length; i++) {
+    const block = events[i];
+    const dtstart = block.match(/DTSTART(?:;[^:]*)?:(\d{8})/);
+    const dtend   = block.match(/DTEND(?:;[^:]*)?:(\d{8})/);
+    if (dtstart && dtend) {
+      ranges.push({
+        start: parseIcalDate(dtstart[1]),
+        end:   parseIcalDate(dtend[1])
+      });
+    }
+  }
+  return ranges;
+}
+
+function parseIcalDate(str) {
+  // YYYYMMDD → Date (UTC midnight)
+  return new Date(
+    parseInt(str.slice(0,4)),
+    parseInt(str.slice(4,6)) - 1,
+    parseInt(str.slice(6,8))
+  );
+}
+
+function isBlocked(dateStr) {
+  if (!dateStr) return false;
+  const d = new Date(dateStr + 'T00:00:00');
+  return blockedRanges.some(r => d >= r.start && d < r.end);
+}
+
+function applyBlockedDates() {
+  // Re-validate any already-selected dates
+  const ci = document.getElementById('casita-checkin');
+  const co = document.getElementById('casita-checkout');
+  if (ci && ci.value && isBlocked(ci.value)) {
+    ci.value = '';
+    ci.style.borderColor = '#e57373';
+    showCalendarNote('Some of your selected dates are already booked on Airbnb. Please choose different dates.');
+  }
+  if (co && co.value && isBlocked(co.value)) {
+    co.value = '';
+    co.style.borderColor = '#e57373';
+  }
+}
+
+function showCalendarNote(msg) {
+  const note = document.querySelector('.availability-note span:last-child');
+  if (note) {
+    note.textContent = msg;
+    note.style.color = '#c0392b';
+  }
+}
+
+function validateDatesAvailable(checkin, checkout) {
+  if (!checkin || !checkout || blockedRanges.length === 0) return true;
+  const start = new Date(checkin + 'T00:00:00');
+  const end   = new Date(checkout + 'T00:00:00');
+  // Check every night in the range
+  for (let d = new Date(start); d < end; d.setDate(d.getDate() + 1)) {
+    if (isBlocked(d.toISOString().split('T')[0])) return false;
+  }
+  return true;
+}
+
+// Load calendar on page load
+document.addEventListener('DOMContentLoaded', loadAirbnbCalendar);
+
+// Validate on date change
+document.addEventListener('DOMContentLoaded', function() {
+  const ci = document.getElementById('casita-checkin');
+  const co = document.getElementById('casita-checkout');
+  if (ci) ci.addEventListener('change', function() {
+    if (isBlocked(this.value)) {
+      showCalendarNote('⚠ That check-in date is already booked. Please choose another.');
+      this.value = '';
+    }
+  });
+  if (co) co.addEventListener('change', function() {
+    const ciVal = document.getElementById('casita-checkin').value;
+    if (!validateDatesAvailable(ciVal, this.value)) {
+      showCalendarNote('⚠ One or more nights in that range are already booked. Please adjust your dates.');
+      this.value = '';
+    } else {
+      // Restore default note
+      const note = document.querySelector('.availability-note span:last-child');
+      if (note) {
+        note.style.color = '';
+        note.textContent = "Calendar synced with Airbnb. Dates shown as available reflect current Airbnb availability. For the most accurate real-time availability, view our Airbnb listing.";
+      }
+    }
+  });
+});
+
+
+// Set min dates
+const today = new Date().toISOString().split('T')[0];
+document.querySelectorAll('input[type=date]').forEach(i => i.min = today);
+
+// Tab switching
+function switchTab(tab) {
+  document.querySelectorAll('.booking-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.booking-panel').forEach(p => p.classList.remove('active'));
+  document.querySelector(`[data-tab=${tab}]`).classList.add('active');
+  document.getElementById(`panel-${tab}`).classList.add('active');
+}
+
+// Calculate total
+function calcTotal(type) {
+  if (type === 'casita') {
+    const ci = document.getElementById('casita-checkin').value;
+    const co = document.getElementById('casita-checkout').value;
+    if (ci && co) {
+      const nights = Math.round((new Date(co)-new Date(ci))/(1000*60*60*24));
+      if (nights > 0) {
+        updatePriceDisplay('card');
+      }
+    }
+  } else if (type === 'boat') {
+    document.getElementById('boat-total').textContent = '$1,300';
+    document.getElementById('boat-nights-label').textContent = '1 day charter';
+  }
+}
+
+// Formspree endpoints — replace with your real endpoint IDs from formspree.io
+const FORMSPREE_ENDPOINTS = {
+  casita: 'https://formspree.io/f/mreywayn',
+  boat:   'https://formspree.io/f/maqpgdle'
+};
+
+async function submitBooking(type) {
+  const panel = document.getElementById(`panel-${type}`);
+  const bookingForm = panel.querySelector('.booking-form');
+  const successMsg = document.getElementById(`${type}-success`);
+
+  // Check Airbnb calendar availability first (casita only)
+  if (type === 'casita') {
+    const ci = document.getElementById('casita-checkin').value;
+    const co = document.getElementById('casita-checkout').value;
+    if (ci && co && !validateDatesAvailable(ci, co)) {
+      showCalendarNote('⚠ Those dates include nights already booked on Airbnb. Please choose different dates.');
+      return;
+    }
+  }
+
+  // Route casita payments through Stripe
+  if (type === 'casita') {
+    if (true) {
+      // Collect booking data then launch Stripe
+      const ci = document.getElementById('casita-checkin').value;
+      const co = document.getElementById('casita-checkout').value;
+      const nights = ci && co ? Math.round((new Date(co)-new Date(ci))/(1000*60*60*24)) : 0;
+      const baseTotal = nights * 600;
+      const cardTotal = (Math.round(baseTotal * 1.03 + 0.30)).toString();
+      const bookingData = {
+        type: 'casita',
+        checkin: ci,
+        checkout: co,
+        nights: nights.toString(),
+        guests: document.getElementById('casita-guests').value,
+        amount: cardTotal,
+      };
+      // Collect name/email/phone
+      bookingForm.querySelectorAll('input[type=text]').forEach(el => {
+        if (el.placeholder==='Jane') bookingData.firstName = el.value;
+        if (el.placeholder==='Smith') bookingData.lastName = el.value;
+      });
+      bookingForm.querySelectorAll('input[type=email]').forEach(el => { bookingData.email = el.value; });
+      bookingForm.querySelectorAll('input[type=tel]').forEach(el => { bookingData.phone = el.value; });
+      bookingForm.querySelectorAll('textarea').forEach(el => { bookingData.message = el.value; });
+
+      await initStripePayment('casita', cardTotal, bookingData);
+      return; // Don't continue to Formspree for card payments
+    }
+  }
+
+  // Gather & validate inputs
+  const inputs = bookingForm.querySelectorAll('input[type=text],input[type=email],input[type=tel],input[type=date]');
+  let valid = true;
+  inputs.forEach(i => {
+    if (!i.value && i.type !== 'tel') { i.style.borderColor = '#e57373'; valid = false; }
+    else i.style.borderColor = '';
+  });
+  if (!valid) { alert('Please fill in the required fields.'); return; }
+
+  // Build form data payload
+  const data = { _subject: '' };
+  if (type === 'casita') {
+    const checkin  = document.getElementById('casita-checkin').value;
+    const checkout = document.getElementById('casita-checkout').value;
+    const nights   = checkin && checkout ? Math.round((new Date(checkout)-new Date(checkin))/(1000*60*60*24)) : 0;
+    const total    = nights * 600;
+    data._subject  = `Booking Request — La Casita Mesa del Mar`;
+    data.property  = 'La Casita — Mesa del Mar';
+    data.checkin   = checkin;
+    data.checkout  = checkout;
+    data.nights    = nights ? `${nights} night${nights>1?'s':''}` : 'Not specified';
+    data.total     = total ? `$${total.toLocaleString()} USD` : 'To be calculated';
+    data.guests    = document.getElementById('casita-guests').value;
+  } else {
+    const date     = document.getElementById('boat-date').value;
+    data._subject  = `Charter Request — El Jefe Mesa del Mar`;
+    data.vessel    = 'El Jefe — Luhrs Sport Fisher';
+    data.date      = date || 'Not specified';
+    data.total     = '$1,300 USD';
+    data.trip_type = bookingForm.querySelector('select:nth-of-type(2)') 
+                     ? bookingForm.querySelectorAll('select')[1].value : '';
+    data.guests    = bookingForm.querySelectorAll('select')[0].value;
+  }
+
+  // Collect name/email/phone/message
+  const allInputs = bookingForm.querySelectorAll('input, textarea');
+  allInputs.forEach(el => {
+    if (el.name) data[el.name] = el.value;
+  });
+  // Also grab by placeholder as fallback
+  bookingForm.querySelectorAll('input[type=text]').forEach(el => {
+    if (el.placeholder === 'Jane')  data.first_name = el.value;
+    if (el.placeholder === 'Smith') data.last_name  = el.value;
+  });
+  bookingForm.querySelectorAll('input[type=email]').forEach(el => { data.email = el.value; });
+  bookingForm.querySelectorAll('input[type=tel]').forEach(el => { data.phone = el.value; });
+  bookingForm.querySelectorAll('textarea').forEach(el => { data.message = el.value; });
+
+  // Show loading state
+  const btn = bookingForm.querySelector('button');
+  const originalText = btn.textContent;
+  btn.textContent = 'Sending…';
+  btn.disabled = true;
+
+  try {
+    const response = await fetch(FORMSPREE_ENDPOINTS[type], {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (response.ok) {
+      bookingForm.style.display = 'none';
+      successMsg.style.display = 'block';
+    } else {
+      throw new Error('Server error');
+    }
+  } catch (err) {
+    console.error('Booking error:', err);
+    alert('Something went wrong. Please email casarancholeonero@gmail.com directly.');
+    btn.textContent = originalText;
+    btn.disabled = false;
+  }
+}
+</script>
+
+</body>
+</html>
