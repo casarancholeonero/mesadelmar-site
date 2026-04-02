@@ -1334,7 +1334,7 @@
   </div>
 </section>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script>
 // Gallery filtering
 function showGallery(cat) {
   document.querySelectorAll('.gtab').forEach(t => {
@@ -1380,7 +1380,7 @@ document.querySelector('.gtab.active').style.color='white';
   <p style="font-size:0.78rem;opacity:0.5">© 2026 Mesa del Mar · mesadelmar.mx · All rights reserved</p>
 </footer>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script>
 // FAQ accordion
 function toggleFaq(btn) {
   const answer = btn.nextElementSibling;
@@ -2031,4 +2031,12 @@ async function submitBooking(type) {
     }
   } catch (err) {
     console.error('Booking error:', err);
-    alert('Somethin
+    alert('Something went wrong. Please email casarancholeonero@gmail.com directly.');
+    btn.textContent = originalText;
+    btn.disabled = false;
+  }
+}
+</script>
+
+</body>
+</html>
