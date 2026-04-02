@@ -882,7 +882,7 @@
           </div>
           <div class="form-group">
             <label>Phone</label>
-            <input type="tel" placeholder="+1 (555) 000-0000">
+            <input type="tel" placeholder="+1 (725) 500-5901">
           </div>
           <div class="form-group">
             <label>Message (optional)</label>
@@ -984,7 +984,7 @@
           </div>
           <div class="form-group">
             <label>Phone</label>
-            <input type="tel" placeholder="+1 (555) 000-0000">
+            <input type="tel" placeholder="+1 (725) 500-5901">
           </div>
           <div class="form-group">
             <label>Notes</label>
@@ -1197,8 +1197,11 @@
       <p class="section-label">Get in Touch</p>
       <h2 class="section-title">We'd love to <em>hear</em> from you</h2>
       <div class="divider" style="margin:1rem auto;"></div>
-      <p style="color:#6b5a4a; line-height:1.9; margin-bottom:2rem;">Whether you have questions about the property, want to discuss a custom stay, or just want to say hello — we're happy to help. Reach us directly by email and we'll get back to you promptly.</p>
-      <a href="/cdn-cgi/l/email-protection#ea898b998b988b84898285868f85848f9885ccc9dcded18d878b8386c4898587" class="btn btn-primary" style="font-size:0.9rem;">casarancholeonero&#64;gmail.com</a>
+      <p style="color:#6b5a4a; line-height:1.9; margin-bottom:2rem;">Whether you have questions about the property, want to discuss a custom stay, or just want to say hello — we're happy to help.</p>
+      <div style="display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;">
+        <a href="tel:+17255005901" class="btn btn-primary" style="font-size:0.9rem;">📞 (725) 500-5901</a>
+        <a href="/cdn-cgi/l/email-protection#e88b899b899a89868b8087848d87868d9a87cecbdedcd38f85898184c68b8785" class="btn btn-outline" style="font-size:0.9rem; color:var(--deep); border-color:var(--terra);">casarancholeonero&#64;gmail.com</a>
+      </div>
     </div>
   </div>
 </section>
@@ -1331,7 +1334,7 @@
   </div>
 </section>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 // Gallery filtering
 function showGallery(cat) {
   document.querySelectorAll('.gtab').forEach(t => {
@@ -1421,7 +1424,7 @@ document.addEventListener('keydown', e => { if(e.key === 'Escape') closeMenu(); 
 // ============================================================
 // STRIPE PAYMENT INTEGRATION
 // ============================================================
-const STRIPE_PUBLISHABLE_KEY = 'pk_test_51TEGBwPtrUNuScehU32EJUatvtaW05kGuGxhPweknuBr0PZgV9NJnl5mmi0f8hP1rQdoRdFyBMhQjG0KWLi94S6d00Wv9cywhC'; // TODO: replace with pk_live_xxxx
+const STRIPE_PUBLISHABLE_KEY = 'pk_live_51TEGBoLJDjrjyHAjOBMYiZcdSpKITncTWt6gpppdP6mbNiDgjp3O29HAjr6QWLi5Hxerp1Av9s3y6oSVBbz0TX3T00CZSh7eh2';
 let stripeInstance = null;
 let stripeElements = null;
 let paymentElement = null;
@@ -1758,6 +1761,68 @@ document.addEventListener('DOMContentLoaded', function() {
 const today = new Date().toISOString().split('T')[0];
 document.querySelectorAll('input[type=date]').forEach(i => i.min = today);
 
+// ── BLOCKED DATES FROM DASHBOARD ──
+let ownerBlockedCasita = new Set();
+let ownerBlockedBoat = new Set();
+
+async function loadBlockedDates() {
+  try {
+    const res = await fetch('/.netlify/functions/get-blocked-dates');
+    if (!res.ok) return;
+    const data = await res.json();
+    ownerBlockedCasita = new Set(data.casita || []);
+    ownerBlockedBoat = new Set(data.boat || []);
+  } catch(e) {
+    console.warn('Could not load blocked dates:', e.message);
+  }
+}
+
+function isOwnerBlocked(dateStr, type) {
+  if (type === 'casita') return ownerBlockedCasita.has(dateStr);
+  if (type === 'boat') return ownerBlockedBoat.has(dateStr);
+  return false;
+}
+
+function validateOwnerDates(checkin, checkout, type) {
+  if (!checkin) return true;
+  const start = new Date(checkin + 'T00:00:00');
+  const end = checkout ? new Date(checkout + 'T00:00:00') : start;
+  for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+    if (isOwnerBlocked(d.toISOString().split('T')[0], type)) return false;
+  }
+  return true;
+}
+
+document.addEventListener('DOMContentLoaded', loadBlockedDates);
+
+// Validate casita dates against owner blocks
+document.addEventListener('DOMContentLoaded', function() {
+  const ci = document.getElementById('casita-checkin');
+  const co = document.getElementById('casita-checkout');
+  if (ci) ci.addEventListener('change', function() {
+    if (isOwnerBlocked(this.value, 'casita')) {
+      showCalendarNote('⚠ That date is not available. Please choose another.');
+      this.value = '';
+    }
+  });
+  if (co) co.addEventListener('change', function() {
+    const ciVal = document.getElementById('casita-checkin').value;
+    if (!validateOwnerDates(ciVal, this.value, 'casita')) {
+      showCalendarNote('⚠ One or more of those nights is not available. Please adjust your dates.');
+      this.value = '';
+    }
+  });
+
+  // Validate boat date against owner blocks
+  const bd = document.getElementById('boat-date');
+  if (bd) bd.addEventListener('change', function() {
+    if (isOwnerBlocked(this.value, 'boat')) {
+      alert('⚠ That charter date is not available. Please choose another.');
+      this.value = '';
+    }
+  });
+});
+
 // Tab switching
 function switchTab(tab) {
   document.querySelectorAll('.booking-tab').forEach(t => t.classList.remove('active'));
@@ -1966,12 +2031,4 @@ async function submitBooking(type) {
     }
   } catch (err) {
     console.error('Booking error:', err);
-    alert('Something went wrong. Please email casarancholeonero@gmail.com directly.');
-    btn.textContent = originalText;
-    btn.disabled = false;
-  }
-}
-</script>
-
-</body>
-</html>
+    alert('Somethin
