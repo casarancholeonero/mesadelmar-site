@@ -452,7 +452,8 @@ async function addBlock() {
     document.getElementById('block-note').value = '';
     await loadData();
   } else {
-    alert('Failed to save block. Please try again.');
+    const errData = await res.json().catch(() => ({}));
+    alert('Failed to save block: ' + (errData.error || res.status));
   }
 }
 
