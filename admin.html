@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mesa del Mar — Owner Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sand: #f0e8d8;
+    --terra: #c4714a;
+    --dusk: #8b5e3c;
+    --deep: #2c1f14;
+    --sage: #7a8c6e;
+    --white: #fdfaf6;
+    --gold: #d4a843;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--sand); font-family:'Jost',sans-serif; font-weight:300; color:var(--deep); }
+
+  /* LOGIN */
+  #login-screen {
+    min-height:100vh; display:flex; align-items:center; justify-content:center;
+  }
+  .login-card {
+    background:white; border-radius:4px; padding:2.5rem; width:100%; max-width:380px;
+    box-shadow:0 4px 24px rgba(44,31,20,0.12);
+  }
+  .login-card h1 { font-family:'Playfair Display',serif; font-size:1.5rem; margin-bottom:0.3rem; }
+  .login-card p { font-size:0.85rem; color:#9a8a7a; margin-bottom:1.5rem; }
+  .login-card input {
+    width:100%; padding:0.8rem 1rem; border:1px solid #ddd; border-radius:2px;
+    font-family:'Jost',sans-serif; font-size:0.95rem; margin-bottom:1rem; outline:none;
+  }
+  .login-card input:focus { border-color:var(--terra); }
+  .login-error { color:#e57373; font-size:0.85rem; margin-bottom:0.8rem; display:none; }
+
+  /* DASHBOARD */
+  #dashboard { display:none; }
+  header {
+    background:var(--deep); color:white; padding:1.2rem 2rem;
+    display:flex; justify-content:space-between; align-items:center;
+  }
+  header h1 { font-family:'Playfair Display',serif; font-size:1.3rem; }
+  header span { font-size:0.8rem; color:rgba(255,255,255,0.5); }
+  .logout-btn {
+    background:none; border:1px solid rgba(255,255,255,0.3); color:white;
+    padding:0.4rem 1rem; border-radius:2px; cursor:pointer; font-family:'Jost',sans-serif;
+    font-size:0.8rem; letter-spacing:0.1em; text-transform:uppercase;
+  }
+  .logout-btn:hover { border-color:white; }
+
+  .dashboard-body { max-width:1100px; margin:0 auto; padding:2rem; }
+
+  /* TABS */
+  .tabs { display:flex; gap:0; margin-bottom:2rem; border-bottom:2px solid #ddd; }
+  .tab-btn {
+    padding:0.8rem 1.8rem; background:none; border:none; cursor:pointer;
+    font-family:'Jost',sans-serif; font-size:0.82rem; letter-spacing:0.15em;
+    text-transform:uppercase; color:#9a8a7a; border-bottom:2px solid transparent;
+    margin-bottom:-2px; transition:all 0.2s;
+  }
+  .tab-btn.active { color:var(--terra); border-bottom-color:var(--terra); font-weight:500; }
+  .tab-panel { display:none; }
+  .tab-panel.active { display:block; }
+
+  /* CARDS */
+  .card { background:white; border-radius:4px; padding:1.5rem; margin-bottom:1.5rem; }
+  .card h2 { font-family:'Playfair Display',serif; font-size:1.2rem; margin-bottom:1rem; }
+  .card-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+  @media(max-width:600px) { .card-grid { grid-template-columns:1fr; } }
+
+  /* FORM */
+  .form-group { margin-bottom:1rem; }
+  .form-group label { display:block; font-size:0.72rem; letter-spacing:0.15em; text-transform:uppercase; color:#7a6a5a; margin-bottom:0.3rem; }
+  .form-group input, .form-group select, .form-group textarea {
+    width:100%; padding:0.7rem 0.9rem; border:1px solid #ddd; border-radius:2px;
+    font-family:'Jost',sans-serif; font-size:0.9rem; outline:none;
+  }
+  .form-group input:focus, .form-group select:focus { border-color:var(--terra); }
+  .form-row { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+
+  /* BUTTON */
+  .btn { display:inline-block; padding:0.7rem 1.5rem; font-size:0.8rem; letter-spacing:0.12em; text-transform:uppercase; cursor:pointer; border:none; border-radius:2px; font-family:'Jost',sans-serif; font-weight:400; transition:all 0.2s; }
+  .btn-primary { background:var(--terra); color:white; }
+  .btn-primary:hover { background:var(--dusk); }
+  .btn-danger { background:#e57373; color:white; }
+  .btn-danger:hover { background:#c62828; }
+  .btn-sm { padding:0.4rem 0.9rem; font-size:0.72rem; }
+
+  /* BOOKING TABLE */
+  .booking-table { width:100%; border-collapse:collapse; font-size:0.88rem; }
+  .booking-table th { text-align:left; font-size:0.7rem; letter-spacing:0.15em; text-transform:uppercase; color:#9a8a7a; padding:0.6rem 0.8rem; border-bottom:2px solid var(--sand); }
+  .booking-table td { padding:0.8rem; border-bottom:1px solid var(--sand); vertical-align:top; }
+  .booking-table tr:last-child td { border-bottom:none; }
+  .badge { display:inline-block; padding:0.2rem 0.6rem; border-radius:20px; font-size:0.72rem; letter-spacing:0.05em; }
+  .badge-casita { background:#fdf0e8; color:var(--terra); }
+  .badge-boat { background:#e8f0fd; color:#2c5282; }
+  .badge-confirmed { background:#e8f5e9; color:#2e7d32; }
+  .badge-block { background:#fff3e0; color:#e65100; }
+
+  /* CALENDAR */
+  .cal-wrap { overflow-x:auto; }
+  .cal { border-collapse:collapse; min-width:600px; width:100%; }
+  .cal th { padding:0.5rem; text-align:center; font-size:0.72rem; letter-spacing:0.1em; text-transform:uppercase; color:#9a8a7a; }
+  .cal td { padding:0.3rem; text-align:center; }
+  .cal-day {
+    width:36px; height:36px; border-radius:50%; display:flex; align-items:center;
+    justify-content:center; margin:0 auto; font-size:0.82rem; cursor:default;
+  }
+  .cal-day.available { color:var(--deep); }
+  .cal-day.booked { background:var(--terra); color:white; border-radius:4px; }
+  .cal-day.blocked { background:#ffa726; color:white; border-radius:4px; }
+  .cal-day.past { color:#ccc; }
+  .cal-day.empty { }
+  .cal-nav { display:flex; align-items:center; gap:1rem; margin-bottom:1rem; }
+  .cal-nav button { background:none; border:1px solid #ddd; border-radius:2px; padding:0.4rem 0.8rem; cursor:pointer; font-size:0.8rem; }
+  .cal-nav button:hover { border-color:var(--terra); }
+  .cal-legend { display:flex; gap:1.5rem; margin-bottom:1rem; flex-wrap:wrap; }
+  .legend-item { display:flex; align-items:center; gap:0.4rem; font-size:0.8rem; color:#6b5a4a; }
+  .legend-dot { width:14px; height:14px; border-radius:3px; }
+
+  .empty-state { text-align:center; padding:2rem; color:#9a8a7a; font-size:0.9rem; }
+
+  .success-toast {
+    position:fixed; bottom:2rem; right:2rem; background:var(--deep); color:white;
+    padding:1rem 1.5rem; border-radius:4px; font-size:0.85rem;
+    display:none; z-index:1000; animation:fadeIn 0.3s;
+  }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-card">
+    <h1>Mesa del Mar</h1>
+    <p>Owner Dashboard — please log in</p>
+    <input type="password" id="password-input" placeholder="Enter password" onkeydown="if(event.key==='Enter') login()">
+    <div class="login-error" id="login-error">Incorrect password. Please try again.</div>
+    <button class="btn btn-primary" style="width:100%" onclick="login()">Log In</button>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+  <header>
+    <div>
+      <h1>Mesa del Mar — Owner Dashboard</h1>
+      <span>mesadelmar.mx</span>
+    </div>
+    <button class="logout-btn" onclick="logout()">Log Out</button>
+  </header>
+
+  <div class="dashboard-body">
+
+    <!-- TABS -->
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('bookings')">📋 All Bookings</button>
+      <button class="tab-btn" onclick="switchTab('casita-cal')">🏡 Casita Calendar</button>
+      <button class="tab-btn" onclick="switchTab('boat-cal')">⚓ El Jefe Calendar</button>
+      <button class="tab-btn" onclick="switchTab('block')">🚫 Block Dates</button>
+    </div>
+
+    <!-- ALL BOOKINGS -->
+    <div class="tab-panel active" id="tab-bookings">
+      <div class="card">
+        <h2>Confirmed Bookings</h2>
+        <div id="bookings-list"><div class="empty-state">Loading...</div></div>
+      </div>
+      <div class="card">
+        <h2>Manual Date Blocks</h2>
+        <div id="blocks-list"><div class="empty-state">Loading...</div></div>
+      </div>
+    </div>
+
+    <!-- CASITA CALENDAR -->
+    <div class="tab-panel" id="tab-casita-cal">
+      <div class="card">
+        <h2>La Casita — Availability</h2>
+        <div class="cal-legend">
+          <div class="legend-item"><div class="legend-dot" style="background:var(--terra)"></div> Booked (Stripe)</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#ffa726"></div> Blocked (manual)</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#e8f5e9; border:1px solid #c8e6c9"></div> Available</div>
+        </div>
+        <div class="cal-nav">
+          <button onclick="prevMonth('casita')">← Prev</button>
+          <strong id="casita-cal-title"></strong>
+          <button onclick="nextMonth('casita')">Next →</button>
+        </div>
+        <div class="cal-wrap"><table class="cal" id="casita-cal"></table></div>
+      </div>
+    </div>
+
+    <!-- BOAT CALENDAR -->
+    <div class="tab-panel" id="tab-boat-cal">
+      <div class="card">
+        <h2>El Jefe — Availability</h2>
+        <div class="cal-legend">
+          <div class="legend-item"><div class="legend-dot" style="background:var(--terra)"></div> Booked (Stripe)</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#ffa726"></div> Blocked (manual)</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#e8f5e9; border:1px solid #c8e6c9"></div> Available</div>
+        </div>
+        <div class="cal-nav">
+          <button onclick="prevMonth('boat')">← Prev</button>
+          <strong id="boat-cal-title"></strong>
+          <button onclick="nextMonth('boat')">Next →</button>
+        </div>
+        <div class="cal-wrap"><table class="cal" id="boat-cal"></table></div>
+      </div>
+    </div>
+
+    <!-- BLOCK DATES -->
+    <div class="tab-panel" id="tab-block">
+      <div class="card">
+        <h2>Block Dates Manually</h2>
+        <p style="color:#6b5a4a; font-size:0.9rem; margin-bottom:1.5rem;">Use this to block dates for maintenance, personal use, or any other reason.</p>
+        <div class="card-grid">
+          <div>
+            <div class="form-group">
+              <label>Property</label>
+              <select id="block-type">
+                <option value="casita">🏡 La Casita</option>
+                <option value="boat">⚓ El Jefe</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>From Date</label>
+                <input type="date" id="block-from">
+              </div>
+              <div class="form-group">
+                <label>To Date</label>
+                <input type="date" id="block-to">
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Note (optional)</label>
+              <input type="text" id="block-note" placeholder="e.g. Owner stay, maintenance...">
+            </div>
+            <button class="btn btn-primary" onclick="addBlock()">Block These Dates</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="success-toast" id="toast"></div>
+
+<script>
+let adminKey = '';
+let allBookings = [];
+let allBlocks = [];
+let casitaMonth = new Date();
+let boatMonth = new Date();
+casitaMonth.setDate(1);
+boatMonth.setDate(1);
+
+// ── AUTH ──
+function login() {
+  const pw = document.getElementById('password-input').value;
+  adminKey = pw;
+  loadData().then(ok => {
+    if (ok) {
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'block';
+    } else {
+      document.getElementById('login-error').style.display = 'block';
+      adminKey = '';
+    }
+  });
+}
+
+function logout() {
+  adminKey = '';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('password-input').value = '';
+}
+
+// ── DATA ──
+async function loadData() {
+  try {
+    const res = await fetch('/.netlify/functions/get-bookings', {
+      headers: { 'x-admin-key': adminKey }
+    });
+    if (res.status === 401) return false;
+    const data = await res.json();
+    allBookings = data.bookings || [];
+    allBlocks = data.blocks || [];
+    renderBookings();
+    renderCalendar('casita');
+    renderCalendar('boat');
+    return true;
+  } catch (err) {
+    console.error(err);
+    return false;
+  }
+}
+
+// ── TABS ──
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+  if (name === 'casita-cal') renderCalendar('casita');
+  if (name === 'boat-cal') renderCalendar('boat');
+}
+
+// ── BOOKINGS TABLE ──
+function renderBookings() {
+  const el = document.getElementById('bookings-list');
+  if (allBookings.length === 0) {
+    el.innerHTML = '<div class="empty-state">No confirmed bookings yet.</div>';
+  } else {
+    const rows = allBookings.map(b => `
+      <tr>
+        <td><span class="badge badge-${b.type}">${b.type === 'casita' ? '🏡 Casita' : '⚓ El Jefe'}</span></td>
+        <td>${b.firstName || ''} ${b.lastName || ''}<br><span style="color:#9a8a7a;font-size:0.8rem">${b.email || ''}</span></td>
+        <td>${b.checkin || '—'}</td>
+        <td>${b.checkout || b.checkin || '—'}</td>
+        <td>${b.nights ? b.nights + ' night(s)' : '1 day'}</td>
+        <td>$${b.amount ? b.amount.toLocaleString() : '—'}</td>
+        <td><span class="badge badge-confirmed">Confirmed</span></td>
+      </tr>
+    `).join('');
+    el.innerHTML = `<table class="booking-table">
+      <thead><tr><th>Type</th><th>Guest</th><th>Check-in</th><th>Check-out</th><th>Duration</th><th>Deposit</th><th>Status</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+  }
+
+  const bl = document.getElementById('blocks-list');
+  if (allBlocks.length === 0) {
+    bl.innerHTML = '<div class="empty-state">No manual blocks set.</div>';
+  } else {
+    const rows = allBlocks.map(b => `
+      <tr>
+        <td><span class="badge badge-${b.type}">${b.type === 'casita' ? '🏡 Casita' : '⚓ El Jefe'}</span></td>
+        <td>${b.checkin}</td>
+        <td>${b.checkout}</td>
+        <td>${b.note || '—'}</td>
+        <td><button class="btn btn-danger btn-sm" onclick="removeBlock('${b.id}')">Remove</button></td>
+      </tr>
+    `).join('');
+    bl.innerHTML = `<table class="booking-table">
+      <thead><tr><th>Type</th><th>From</th><th>To</th><th>Note</th><th></th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+  }
+}
+
+// ── CALENDAR ──
+function renderCalendar(type) {
+  const month = type === 'casita' ? casitaMonth : boatMonth;
+  const titleEl = document.getElementById(type + '-cal-title');
+  const calEl = document.getElementById(type + '-cal');
+
+  const monthName = month.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  titleEl.textContent = monthName;
+
+  const year = month.getFullYear();
+  const mon = month.getMonth();
+  const firstDay = new Date(year, mon, 1).getDay();
+  const daysInMonth = new Date(year, mon + 1, 0).getDate();
+  const today = new Date();
+  today.setHours(0,0,0,0);
+
+  // Build set of booked/blocked dates
+  const bookedDates = new Set();
+  allBookings.filter(b => b.type === type).forEach(b => {
+    if (!b.checkin) return;
+    const start = new Date(b.checkin + 'T00:00:00');
+    const end = b.checkout ? new Date(b.checkout + 'T00:00:00') : new Date(b.checkin + 'T00:00:00');
+    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+      bookedDates.add(d.toISOString().split('T')[0]);
+    }
+  });
+
+  const blockedDates = new Set();
+  allBlocks.filter(b => b.type === type).forEach(b => {
+    const start = new Date(b.checkin + 'T00:00:00');
+    const end = new Date(b.checkout + 'T00:00:00');
+    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+      blockedDates.add(d.toISOString().split('T')[0]);
+    }
+  });
+
+  let html = '<thead><tr>';
+  ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(d => { html += `<th>${d}</th>`; });
+  html += '</tr></thead><tbody><tr>';
+
+  for (let i = 0; i < firstDay; i++) html += '<td></td>';
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dateStr = `${year}-${String(mon+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const date = new Date(dateStr + 'T00:00:00');
+    let cls = 'available';
+    let style = 'background:#e8f5e9;';
+    if (date < today) { cls = 'past'; style = ''; }
+    else if (bookedDates.has(dateStr)) { cls = 'booked'; style = ''; }
+    else if (blockedDates.has(dateStr)) { cls = 'blocked'; style = ''; }
+
+    html += `<td><div class="cal-day ${cls}" style="${style}">${day}</div></td>`;
+
+    if ((firstDay + day) % 7 === 0 && day !== daysInMonth) html += '</tr><tr>';
+  }
+
+  html += '</tr></tbody>';
+  calEl.innerHTML = html;
+}
+
+function prevMonth(type) {
+  if (type === 'casita') { casitaMonth.setMonth(casitaMonth.getMonth() - 1); renderCalendar('casita'); }
+  else { boatMonth.setMonth(boatMonth.getMonth() - 1); renderCalendar('boat'); }
+}
+function nextMonth(type) {
+  if (type === 'casita') { casitaMonth.setMonth(casitaMonth.getMonth() + 1); renderCalendar('casita'); }
+  else { boatMonth.setMonth(boatMonth.getMonth() + 1); renderCalendar('boat'); }
+}
+
+// ── BLOCKS ──
+async function addBlock() {
+  const type = document.getElementById('block-type').value;
+  const from = document.getElementById('block-from').value;
+  const to = document.getElementById('block-to').value;
+  const note = document.getElementById('block-note').value;
+
+  if (!from || !to) { alert('Please select both a from and to date.'); return; }
+  if (to < from) { alert('To date must be after from date.'); return; }
+
+  const res = await fetch('/.netlify/functions/save-booking', {
+    method: 'POST',
+    headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'add-block', type, checkin: from, checkout: to, note })
+  });
+
+  if (res.ok) {
+    showToast('Dates blocked successfully!');
+    document.getElementById('block-from').value = '';
+    document.getElementById('block-to').value = '';
+    document.getElementById('block-note').value = '';
+    await loadData();
+  } else {
+    alert('Failed to save block. Please try again.');
+  }
+}
+
+async function removeBlock(id) {
+  if (!confirm('Remove this date block?')) return;
+  const res = await fetch('/.netlify/functions/save-booking', {
+    method: 'POST',
+    headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'remove-block', id })
+  });
+  if (res.ok) {
+    showToast('Block removed.');
+    await loadData();
+  }
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  setTimeout(() => { t.style.display = 'none'; }, 3000);
+}
+
+// Set min dates
+const today = new Date().toISOString().split('T')[0];
+document.querySelectorAll('input[type=date]').forEach(i => i.min = today);
+</script>
+</body>
+</html>
