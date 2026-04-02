@@ -967,15 +967,7 @@
               <option>4</option><option>5</option><option>6</option>
             </select>
           </div>
-          <div class="form-group">
-            <label>Trip Type</label>
-            <select>
-              <option>Sport Fishing</option>
-              <option>Coastal Cruise / Sightseeing</option>
-              <option>Snorkeling Excursion</option>
-              <option>Combination — Fishing & Cruise</option>
-            </select>
-          </div>
+
           <div class="form-row">
             <div class="form-group">
               <label>First Name</label>
@@ -1018,9 +1010,9 @@
           <!-- CANCELLATION POLICY -->
           <div style="background:#f9f5f0; border:1px solid #e0d5c5; border-radius:2px; padding:1rem 1.2rem; margin-bottom:1rem;">
             <p style="font-size:0.75rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--terra); margin-bottom:0.6rem;">Cancellation Policy</p>
-            <p style="font-size:0.82rem; color:#6b5a4a; line-height:1.7; margin-bottom:0.3rem;">✓ <strong>45+ days before charter</strong> — full refund</p>
-            <p style="font-size:0.82rem; color:#6b5a4a; line-height:1.7; margin-bottom:0.3rem;">◑ <strong>30–44 days before charter</strong> — 50% of deposit refunded</p>
-            <p style="font-size:0.82rem; color:#6b5a4a; line-height:1.7;">✕ <strong>Under 14 days before charter</strong> — deposit forfeited</p>
+            <p style="font-size:0.82rem; color:#6b5a4a; line-height:1.7; margin-bottom:0.3rem;">✓ <strong>14+ days before charter</strong> — full refund</p>
+            <p style="font-size:0.82rem; color:#6b5a4a; line-height:1.7; margin-bottom:0.3rem;">✕ <strong>Under 14 days before charter</strong> — no refund</p>
+            <p style="font-size:0.82rem; color:#6b5a4a; line-height:1.7;">⛈ <strong>Storm cancellation</strong> — no penalty; cancel or reschedule within 24 hours of charter date</p>
           </div>
 
           <!-- STRIPE NOTICE -->
@@ -1120,6 +1112,19 @@
 
       <div class="faq-item">
         <button class="faq-q" onclick="toggleFaq(this)">
+          What is the cancellation policy for El Jefe?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-a">
+          <p>A 50% deposit is required at booking, with the balance due 2 weeks before the charter date.</p>
+          <p style="margin-top:0.6rem;">✓ <strong>14+ days before charter</strong> — full refund</p>
+          <p>✕ <strong>Under 14 days before charter</strong> — no refund</p>
+          <p>⛈ <strong>Storm cancellation</strong> — no penalty; you may cancel or reschedule within 24 hours of the charter date at no charge</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
           What is your cancellation policy?
           <span class="faq-icon">+</span>
         </button>
@@ -1193,7 +1198,7 @@
       <h2 class="section-title">We'd love to <em>hear</em> from you</h2>
       <div class="divider" style="margin:1rem auto;"></div>
       <p style="color:#6b5a4a; line-height:1.9; margin-bottom:2rem;">Whether you have questions about the property, want to discuss a custom stay, or just want to say hello — we're happy to help. Reach us directly by email and we'll get back to you promptly.</p>
-      <a href="mailto:casarancholeonero&#64;gmail.com" class="btn btn-primary" style="font-size:0.9rem;">casarancholeonero&#64;gmail.com</a>
+      <a href="/cdn-cgi/l/email-protection#ea898b998b988b84898285868f85848f9885ccc9dcded18d878b8386c4898587" class="btn btn-primary" style="font-size:0.9rem;">casarancholeonero&#64;gmail.com</a>
     </div>
   </div>
 </section>
@@ -1326,7 +1331,7 @@
   </div>
 </section>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 // Gallery filtering
 function showGallery(cat) {
   document.querySelectorAll('.gtab').forEach(t => {
@@ -1368,11 +1373,11 @@ document.querySelector('.gtab.active').style.color='white';
 <!-- FOOTER -->
 <footer>
   <h3>Mesa del Mar</h3>
-  <p style="margin:0.5rem 0 1rem">Baja California Sur, Mexico &nbsp;·&nbsp; <a href="mailto:casarancholeonero&#64;gmail.com" style="color:var(--gold);">casarancholeonero&#64;gmail.com</a></p>
+  <p style="margin:0.5rem 0 1rem">Baja California Sur, Mexico &nbsp;·&nbsp; <a href="/cdn-cgi/l/email-protection#650604160417040b060d0a09000a0b00170a434653515e0208040c094b060a08" style="color:var(--gold);">casarancholeonero&#64;gmail.com</a></p>
   <p style="font-size:0.78rem;opacity:0.5">© 2026 Mesa del Mar · mesadelmar.mx · All rights reserved</p>
 </footer>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 // FAQ accordion
 function toggleFaq(btn) {
   const answer = btn.nextElementSibling;
@@ -1562,13 +1567,16 @@ async function confirmStripePayment() {
   } else {
     // Payment authorized successfully
     closeStripeModal();
-    // Show success message
-    const panel = document.getElementById('panel-casita');
-    if (panel) {
-      panel.querySelector('.booking-form').style.display = 'none';
-      document.getElementById('casita-success').style.display = 'block';
-      document.getElementById('casita-success').textContent =
-        '✓ Payment authorized! We will confirm your reservation at casarancholeonero@gmail.com within 24 hours.';
+    // Show success message for whichever panel is active
+    const activePanel = document.querySelector('.booking-panel.active');
+    if (activePanel) {
+      const form = activePanel.querySelector('.booking-form');
+      const successMsg = activePanel.querySelector('.success-msg');
+      if (form) form.style.display = 'none';
+      if (successMsg) {
+        successMsg.style.display = 'block';
+        successMsg.textContent = '✓ Deposit authorized! We will confirm your reservation at casarancholeonero&#64;gmail.com within 24 hours.';
+      }
     }
   }
 }
