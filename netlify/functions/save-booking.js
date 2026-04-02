@@ -1,6 +1,4 @@
-const { getStore } = require('@netlify/blobs');
-
-exports.handler = async function(event, context) {
+exports.handler = async function(event) {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
@@ -10,17 +8,30 @@ exports.handler = async function(event, context) {
     return { statusCode: 401, body: JSON.stringify({ error: 'Unauthorized' }) };
   }
 
+  const siteId = process.env.NETLIFY_SITE_ID;
+  const token = process.env.NETLIFY_AUTH_TOKEN;
+
+  if (!siteId || !token) {
+    return { statusCode: 500, body: JSON.stringify({ error: 'Missing NETLIFY_SITE_ID or NETLIFY_AUTH_TOKEN' }) };
+  }
+
   try {
-    const store = getStore('bookings');
     const data = JSON.parse(event.body);
+    const baseUrl = `https://api.netlify.com/api/v1/sites/${siteId}/blobs`;
+    const headers = {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    };
+
+    // Get existing blocks
+    let blockList = [];
+    const getRes = await fetch(`${baseUrl}/blocks`, { headers });
+    if (getRes.ok) {
+      const text = await getRes.text();
+      try { blockList = JSON.parse(text); } catch(e) { blockList = []; }
+    }
 
     if (data.action === 'add-block') {
-      let blockList = [];
-      try {
-        const existing = await store.get('blocks');
-        if (existing) blockList = JSON.parse(existing);
-      } catch(e) { blockList = []; }
-
       blockList.push({
         id: Date.now().toString(),
         type: data.type,
@@ -29,30 +40,27 @@ exports.handler = async function(event, context) {
         note: data.note || 'Manual block',
         createdAt: new Date().toISOString(),
       });
-
-      await store.set('blocks', JSON.stringify(blockList));
-      return { statusCode: 200, body: JSON.stringify({ success: true }) };
+    } else if (data.action === 'remove-block') {
+      blockList = blockList.filter(b => b.id !== data.id);
+    } else {
+      return { statusCode: 400, body: JSON.stringify({ error: 'Unknown action' }) };
     }
 
-    if (data.action === 'remove-block') {
-      let blockList = [];
-      try {
-        const existing = await store.get('blocks');
-        if (existing) blockList = JSON.parse(existing);
-      } catch(e) { blockList = []; }
+    // Save updated blocks
+    const putRes = await fetch(`${baseUrl}/blocks`, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify(blockList),
+    });
 
-      const updated = blockList.filter(b => b.id !== data.id);
-      await store.set('blocks', JSON.stringify(updated));
-      return { statusCode: 200, body: JSON.stringify({ success: true }) };
+    if (!putRes.ok) {
+      const errText = await putRes.text();
+      return { statusCode: 500, body: JSON.stringify({ error: 'Failed to save: ' + errText }) };
     }
 
-    return { statusCode: 400, body: JSON.stringify({ error: 'Unknown action' }) };
+    return { statusCode: 200, body: JSON.stringify({ success: true }) };
 
   } catch (err) {
-    console.error('save-booking error:', err);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: err.message }),
-    };
+    return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
   }
 };
