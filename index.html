@@ -1200,7 +1200,7 @@
       <p style="color:#6b5a4a; line-height:1.9; margin-bottom:2rem;">Whether you have questions about the property, want to discuss a custom stay, or just want to say hello — we're happy to help.</p>
       <div style="display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;">
         <a href="tel:+17255005901" class="btn btn-primary" style="font-size:0.9rem;">📞 (725) 500-5901</a>
-        <a href="/cdn-cgi/l/email-protection#e88b899b899a89868b8087848d87868d9a87cecbdedcd38f85898184c68b8785" class="btn btn-outline" style="font-size:0.9rem; color:var(--deep); border-color:var(--terra);">casarancholeonero&#64;gmail.com</a>
+        <a href="mailto:casarancholeonero@gmail.com" class="btn btn-outline" style="font-size:0.9rem; color:var(--deep); border-color:var(--terra);">casarancholeonero@gmail.com</a>
       </div>
     </div>
   </div>
@@ -1376,7 +1376,7 @@ document.querySelector('.gtab.active').style.color='white';
 <!-- FOOTER -->
 <footer>
   <h3>Mesa del Mar</h3>
-  <p style="margin:0.5rem 0 1rem">Baja California Sur, Mexico &nbsp;·&nbsp; <a href="/cdn-cgi/l/email-protection#650604160417040b060d0a09000a0b00170a434653515e0208040c094b060a08" style="color:var(--gold);">casarancholeonero&#64;gmail.com</a></p>
+  <p style="margin:0.5rem 0 1rem">Baja California Sur, Mexico &nbsp;·&nbsp; <a href="mailto:casarancholeonero@gmail.com" style="color:var(--gold);">casarancholeonero@gmail.com</a></p>
   <p style="font-size:0.78rem;opacity:0.5">© 2026 Mesa del Mar · mesadelmar.mx · All rights reserved</p>
 </footer>
 
@@ -1519,8 +1519,8 @@ function showStripeModal(stripe, clientSecret, bookingData) {
   const summary = document.getElementById('stripe-modal-summary');
   if (summary) {
     summary.innerHTML = bookingData.type === 'casita'
-      ? `La Casita · \${bookingData.nights} nights<br>\${bookingData.checkin} → \${bookingData.checkout}<br><strong>Total: $\${parseFloat(bookingData.amount).toLocaleString()}</strong> (incl. 3% card fee)`
-      : `El Jefe Charter · \${bookingData.checkin}<br><strong>Total: $1,339</strong> (incl. 3% card fee)`;
+      ? `La Casita · ${bookingData.nights} nights<br>${bookingData.checkin} → ${bookingData.checkout}<br><strong>Total: $${parseFloat(bookingData.amount).toLocaleString()}</strong> (incl. 3% card fee)`
+      : `El Jefe Charter · ${bookingData.checkin}<br><strong>Total: $1,339</strong> (incl. 3% card fee)`;
   }
 
   modal.style.display = 'flex';
@@ -1578,7 +1578,7 @@ async function confirmStripePayment() {
       if (form) form.style.display = 'none';
       if (successMsg) {
         successMsg.style.display = 'block';
-        successMsg.textContent = '✓ Deposit authorized! We will confirm your reservation at casarancholeonero&#64;gmail.com within 24 hours.';
+        successMsg.textContent = '✓ Deposit authorized! You will receive a confirmation email within 24 hours.';
       }
     }
   }
