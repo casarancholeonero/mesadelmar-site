@@ -289,15 +289,21 @@ async function loadData() {
     });
     if (res.status === 401) return false;
     const data = await res.json();
-    allBookings = data.bookings || [];
-    allBlocks = data.blocks || [];
+    allBookings = Array.isArray(data.bookings) ? data.bookings : [];
+    allBlocks = Array.isArray(data.blocks) ? data.blocks : [];
     renderBookings();
     renderCalendar('casita');
     renderCalendar('boat');
     return true;
   } catch (err) {
     console.error(err);
-    return false;
+    // Still show dashboard even if data load fails
+    allBookings = [];
+    allBlocks = [];
+    renderBookings();
+    renderCalendar('casita');
+    renderCalendar('boat');
+    return true;
   }
 }
 
