@@ -888,18 +888,40 @@
             <label>Message (optional)</label>
             <textarea rows="2" placeholder="Special requests, questions..."></textarea>
           </div>
-          <div class="form-total">
-            <span class="form-total-label" id="casita-nights-label">Select dates to see total</span>
-            <span class="form-total-price" id="casita-total"></span>
+          <!-- PRICE BREAKDOWN -->
+          <div class="form-total" id="casita-price-box" style="display:none; flex-direction:column; align-items:stretch; gap:0.5rem;">
+            <div style="display:flex; justify-content:space-between;">
+              <span class="form-total-label" id="casita-nights-label"></span>
+              <span class="form-total-price" id="casita-total"></span>
+            </div>
+            <div style="display:flex; justify-content:space-between; border-top:1px solid #e0d5c5; padding-top:0.5rem;">
+              <span style="font-size:0.8rem; color:#7a6a5a;">50% deposit due today</span>
+              <span style="font-family:'Playfair Display',serif; font-size:1.1rem; color:var(--terra);" id="casita-deposit"></span>
+            </div>
+            <div style="display:flex; justify-content:space-between;">
+              <span style="font-size:0.8rem; color:#7a6a5a;">Balance due</span>
+              <span style="font-size:0.8rem; color:#7a6a5a;" id="casita-balance-date"></span>
+            </div>
+          </div>
+          <div id="casita-no-dates" style="background:#f9f5f0; border:1px solid #e0d5c5; border-radius:2px; padding:0.8rem 1rem; margin-bottom:0.5rem; font-size:0.85rem; color:#9a8a7a;">
+            Select dates to see your total and deposit
+          </div>
+
+          <!-- CANCELLATION POLICY -->
+          <div style="background:#f9f5f0; border:1px solid #e0d5c5; border-radius:2px; padding:1rem 1.2rem; margin-bottom:1rem;">
+            <p style="font-size:0.75rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--terra); margin-bottom:0.6rem;">Cancellation Policy</p>
+            <p style="font-size:0.82rem; color:#6b5a4a; line-height:1.7; margin-bottom:0.3rem;">✓ <strong>45+ days before arrival</strong> — full refund</p>
+            <p style="font-size:0.82rem; color:#6b5a4a; line-height:1.7; margin-bottom:0.3rem;">◑ <strong>30–44 days before arrival</strong> — 50% of deposit refunded</p>
+            <p style="font-size:0.82rem; color:#6b5a4a; line-height:1.7;">✕ <strong>Under 14 days before arrival</strong> — deposit forfeited</p>
           </div>
 
           <!-- STRIPE PAYMENT NOTICE -->
           <div class="stripe-notice show" id="casita-stripe-notice" style="display:block;">
-            <p>💳 After submitting, you'll be redirected to our secure <strong>Stripe checkout</strong> to complete payment. Your card is authorized but <strong>not charged</strong> until we confirm availability within 24 hours.</p>
+            <p>💳 After submitting, you will be redirected to our secure <strong>Stripe checkout</strong> to pay your 50% deposit. Your card is authorized but <strong>not charged</strong> until we confirm availability within 24 hours.</p>
           </div>
 
-          <button class="btn btn-primary" style="width:100%" id="casita-submit-btn" onclick="submitBooking('casita')">Request & Pay</button>
-          <p class="form-note">We'll confirm availability and send a receipt within 24 hours. No charge until confirmed.</p>
+          <button class="btn btn-primary" style="width:100%" id="casita-submit-btn" onclick="submitBooking('casita')">Request & Pay Deposit</button>
+          <p class="form-note">We will confirm availability and send a receipt within 24 hours. Balance due 2 weeks before arrival.</p>
         </div>
         <div class="success-msg" id="casita-success">
           ✓ Your booking request has been received! We'll be in touch within 24 hours.
@@ -924,8 +946,16 @@
         </ul>
       </div>
       <div>
+        <!-- EXCLUSIVE NOTICE -->
+        <div style="background:#f0f7ff; border:1px solid #c8dff5; border-radius:2px; padding:1rem 1.2rem; margin-bottom:1.5rem;">
+          <p style="font-size:0.85rem; color:#2c5282; line-height:1.7;">⚓ <strong>El Jefe is available exclusively to La Casita guests.</strong> Please enter your Casita check-in date below to confirm eligibility.</p>
+        </div>
         <div class="booking-form">
           <h4 class="form-title">Book El Jefe</h4>
+          <div class="form-group">
+            <label>Your Casita Check-in Date *</label>
+            <input type="date" id="boat-casita-checkin" min="" required>
+          </div>
           <div class="form-group">
             <label>Charter Date</label>
             <input type="date" id="boat-date" min="" onchange="calcTotal('boat')">
@@ -968,12 +998,38 @@
             <label>Notes</label>
             <textarea rows="2" placeholder="Target species, special requests..."></textarea>
           </div>
-          <div class="form-total">
-            <span class="form-total-label" id="boat-nights-label">1 day charter</span>
-            <span class="form-total-price" id="boat-total">$1,300</span>
+
+          <!-- PRICE BREAKDOWN -->
+          <div class="form-total" style="flex-direction:column; align-items:stretch; gap:0.5rem;">
+            <div style="display:flex; justify-content:space-between;">
+              <span class="form-total-label" id="boat-nights-label">1 day charter</span>
+              <span class="form-total-price" id="boat-total">$1,300</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; border-top:1px solid #e0d5c5; padding-top:0.5rem;">
+              <span style="font-size:0.8rem; color:#7a6a5a;">50% deposit due today</span>
+              <span style="font-family:'Playfair Display',serif; font-size:1.1rem; color:var(--terra);">$650</span>
+            </div>
+            <div style="display:flex; justify-content:space-between;">
+              <span style="font-size:0.8rem; color:#7a6a5a;">Balance due</span>
+              <span style="font-size:0.8rem; color:#7a6a5a;" id="boat-balance-date">2 weeks before charter date</span>
+            </div>
           </div>
-          <button class="btn btn-primary" style="width:100%" onclick="submitBooking('boat')">Send Charter Request</button>
-          <p class="form-note">Charter is available exclusively to Mesa del Mar guests. We'll confirm your dates within 24 hours.</p>
+
+          <!-- CANCELLATION POLICY -->
+          <div style="background:#f9f5f0; border:1px solid #e0d5c5; border-radius:2px; padding:1rem 1.2rem; margin-bottom:1rem;">
+            <p style="font-size:0.75rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--terra); margin-bottom:0.6rem;">Cancellation Policy</p>
+            <p style="font-size:0.82rem; color:#6b5a4a; line-height:1.7; margin-bottom:0.3rem;">✓ <strong>45+ days before charter</strong> — full refund</p>
+            <p style="font-size:0.82rem; color:#6b5a4a; line-height:1.7; margin-bottom:0.3rem;">◑ <strong>30–44 days before charter</strong> — 50% of deposit refunded</p>
+            <p style="font-size:0.82rem; color:#6b5a4a; line-height:1.7;">✕ <strong>Under 14 days before charter</strong> — deposit forfeited</p>
+          </div>
+
+          <!-- STRIPE NOTICE -->
+          <div class="stripe-notice show" style="display:block;">
+            <p>💳 After submitting, you will be redirected to our secure <strong>Stripe checkout</strong> to pay your 50% deposit. Your card is authorized but <strong>not charged</strong> until we confirm availability within 24 hours.</p>
+          </div>
+
+          <button class="btn btn-primary" style="width:100%" onclick="submitBooking('boat')">Request & Pay Deposit</button>
+          <p class="form-note">Available exclusively to La Casita guests. We will confirm your dates within 24 hours. Balance due 2 weeks before charter.</p>
         </div>
         <div class="success-msg" id="boat-success">
           ✓ Your charter request has been received! Captain will be in touch within 24 hours.
@@ -1061,6 +1117,19 @@
       <div class="divider" style="margin:1rem auto;"></div>
     </div>
     <div style="max-width:780px; margin:0 auto;">
+
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          What is your cancellation policy?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-a">
+          <p>We require a 50% deposit at booking, with the balance due 2 weeks before arrival. Our cancellation policy is as follows:</p>
+          <p style="margin-top:0.6rem;">✓ <strong>45+ days before arrival</strong> — full refund</p>
+          <p>◑ <strong>30–44 days before arrival</strong> — 50% of deposit refunded</p>
+          <p>✕ <strong>Under 14 days before arrival</strong> — deposit forfeited</p>
+        </div>
+      </div>
 
       <div class="faq-item">
         <button class="faq-q" onclick="toggleFaq(this)">
@@ -1697,10 +1766,35 @@ function calcTotal(type) {
     if (ci && co) {
       const nights = Math.round((new Date(co)-new Date(ci))/(1000*60*60*24));
       if (nights > 0) {
-        updatePriceDisplay('card');
+        const baseTotal = nights * 600;
+        const deposit = Math.round(baseTotal * 0.50);
+
+        // Balance due = 2 weeks before check-in
+        const checkinDate = new Date(ci + 'T00:00:00');
+        const balanceDue = new Date(checkinDate);
+        balanceDue.setDate(balanceDue.getDate() - 14);
+        const balanceStr = balanceDue.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+
+        document.getElementById('casita-nights-label').textContent = nights + ' night' + (nights>1?'s':'') + ' x $600';
+        document.getElementById('casita-total').textContent = '$' + baseTotal.toLocaleString();
+        document.getElementById('casita-deposit').textContent = '$' + deposit.toLocaleString();
+        document.getElementById('casita-balance-date').textContent = balanceStr;
+        document.getElementById('casita-price-box').style.display = 'flex';
+        document.getElementById('casita-no-dates').style.display = 'none';
       }
+    } else {
+      document.getElementById('casita-price-box').style.display = 'none';
+      document.getElementById('casita-no-dates').style.display = 'block';
     }
   } else if (type === 'boat') {
+    const bd = document.getElementById('boat-date').value;
+    if (bd) {
+      const charterDate = new Date(bd + 'T00:00:00');
+      const balanceDue = new Date(charterDate);
+      balanceDue.setDate(balanceDue.getDate() - 14);
+      const balanceStr = balanceDue.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+      document.getElementById('boat-balance-date').textContent = balanceStr;
+    }
     document.getElementById('boat-total').textContent = '$1,300';
     document.getElementById('boat-nights-label').textContent = '1 day charter';
   }
@@ -1735,7 +1829,8 @@ async function submitBooking(type) {
       const co = document.getElementById('casita-checkout').value;
       const nights = ci && co ? Math.round((new Date(co)-new Date(ci))/(1000*60*60*24)) : 0;
       const baseTotal = nights * 600;
-      const cardTotal = (Math.round(baseTotal * 1.03 + 0.30)).toString();
+      const deposit = Math.round(baseTotal * 0.50);
+      const cardTotal = deposit.toString();
       const bookingData = {
         type: 'casita',
         checkin: ci,
@@ -1754,8 +1849,45 @@ async function submitBooking(type) {
       bookingForm.querySelectorAll('textarea').forEach(el => { bookingData.message = el.value; });
 
       await initStripePayment('casita', cardTotal, bookingData);
-      return; // Don't continue to Formspree for card payments
+      return;
     }
+  }
+
+  // Route boat payments through Stripe
+  if (type === 'boat') {
+    // Validate casita check-in date is provided
+    const casitaCheckin = document.getElementById('boat-casita-checkin').value;
+    if (!casitaCheckin) {
+      document.getElementById('boat-casita-checkin').style.borderColor = '#e57373';
+      alert('Please enter your Casita check-in date to confirm eligibility for El Jefe.');
+      return;
+    }
+    const charterDate = document.getElementById('boat-date').value;
+    if (!charterDate) {
+      document.getElementById('boat-date').style.borderColor = '#e57373';
+      alert('Please select a charter date.');
+      return;
+    }
+    const deposit = 650; // 50% of $1,300
+    const bookingData = {
+      type: 'boat',
+      checkin: charterDate,
+      checkout: charterDate,
+      nights: '1',
+      guests: bookingForm.querySelectorAll('select')[0].value,
+      amount: deposit.toString(),
+      casitaCheckin: casitaCheckin,
+    };
+    bookingForm.querySelectorAll('input[type=text]').forEach(el => {
+      if (el.placeholder==='Jane') bookingData.firstName = el.value;
+      if (el.placeholder==='Smith') bookingData.lastName = el.value;
+    });
+    bookingForm.querySelectorAll('input[type=email]').forEach(el => { bookingData.email = el.value; });
+    bookingForm.querySelectorAll('input[type=tel]').forEach(el => { bookingData.phone = el.value; });
+    bookingForm.querySelectorAll('textarea').forEach(el => { bookingData.message = el.value; });
+
+    await initStripePayment('boat', deposit.toString(), bookingData);
+    return;
   }
 
   // Gather & validate inputs
