@@ -841,7 +841,7 @@
       <div>
         <div class="availability-note">
           <span>📅</span>
-          <span>🔄 Loading live availability from Airbnb... Booked dates will be flagged automatically. For the most accurate availability, <a href="https://www.airbnb.com/rooms/21548101" target="_blank" style="color:var(--terra)">view our Airbnb listing</a>.</span>
+          <span>📅 Unavailable dates are blocked automatically. If you have questions about availability, please <a href="#contact" style="color:var(--terra)">contact us</a> or <a href="https://www.airbnb.com/rooms/21548101" target="_blank" style="color:var(--terra)">view our Airbnb listing</a>.</span>
         </div>
         <div class="booking-form">
           <h4 class="form-title">Request to Book</h4>
@@ -1200,7 +1200,7 @@
       <p style="color:#6b5a4a; line-height:1.9; margin-bottom:2rem;">Whether you have questions about the property, want to discuss a custom stay, or just want to say hello — we're happy to help.</p>
       <div style="display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;">
         <a href="tel:+17255005901" class="btn btn-primary" style="font-size:0.9rem;">📞 (725) 500-5901</a>
-        <a href="mailto:casarancholeonero@gmail.com" class="btn btn-outline" style="font-size:0.9rem; color:var(--deep); border-color:var(--terra);">casarancholeonero@gmail.com</a>
+        <a href="/cdn-cgi/l/email-protection#d1b2b0a2b0a3b0bfb2b9bebdb4bebfb4a3be91b6bcb0b8bdffb2bebc" class="btn btn-outline" style="font-size:0.9rem; color:var(--deep); border-color:var(--terra);"><span class="__cf_email__" data-cfemail="e88b899b899a89868b8087848d87868d9a87a88f85898184c68b8785">[email&#160;protected]</span></a>
       </div>
     </div>
   </div>
@@ -1334,7 +1334,7 @@
   </div>
 </section>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 // Gallery filtering
 function showGallery(cat) {
   document.querySelectorAll('.gtab').forEach(t => {
@@ -1376,11 +1376,11 @@ document.querySelector('.gtab.active').style.color='white';
 <!-- FOOTER -->
 <footer>
   <h3>Mesa del Mar</h3>
-  <p style="margin:0.5rem 0 1rem">Baja California Sur, Mexico &nbsp;·&nbsp; <a href="mailto:casarancholeonero@gmail.com" style="color:var(--gold);">casarancholeonero@gmail.com</a></p>
+  <p style="margin:0.5rem 0 1rem">Baja California Sur, Mexico &nbsp;·&nbsp; <a href="/cdn-cgi/l/email-protection#1e7d7f6d7f6c7f707d7671727b71707b6c715e79737f7772307d7173" style="color:var(--gold);"><span class="__cf_email__" data-cfemail="d3b0b2a0b2a1b2bdb0bbbcbfb6bcbdb6a1bc93b4beb2babffdb0bcbe">[email&#160;protected]</span></a></p>
   <p style="font-size:0.78rem;opacity:0.5">© 2026 Mesa del Mar · mesadelmar.mx · All rights reserved</p>
 </footer>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 // FAQ accordion
 function toggleFaq(btn) {
   const answer = btn.nextElementSibling;
@@ -2020,23 +2020,4 @@ async function submitBooking(type) {
   try {
     const response = await fetch(FORMSPREE_ENDPOINTS[type], {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify(data)
-    });
-    if (response.ok) {
-      bookingForm.style.display = 'none';
-      successMsg.style.display = 'block';
-    } else {
-      throw new Error('Server error');
-    }
-  } catch (err) {
-    console.error('Booking error:', err);
-    alert('Something went wrong. Please email casarancholeonero@gmail.com directly.');
-    btn.textContent = originalText;
-    btn.disabled = false;
-  }
-}
-</script>
-
-</body>
-</html>
+      headers:
