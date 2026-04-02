@@ -8,11 +8,11 @@ exports.handler = async function(event) {
   const token = process.env.NETLIFY_AUTH_TOKEN;
 
   if (!siteId || !token) {
-    return { statusCode: 500, body: JSON.stringify({ error: 'Missing NETLIFY_SITE_ID or NETLIFY_AUTH_TOKEN' }) };
+    return { statusCode: 500, body: JSON.stringify({ error: 'Missing env vars', hasSiteId: !!siteId, hasToken: !!token }) };
   }
 
   try {
-    const baseUrl = `https://api.netlify.com/api/v1/sites/${siteId}/blobs`;
+    const baseUrl = `https://api.netlify.com/api/v1/blobs/${siteId}/bookings`;
     const headers = { 'Authorization': `Bearer ${token}` };
 
     let bookings = [];
