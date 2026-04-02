@@ -2,6 +2,7 @@
   "name": "mesadelmar-site",
   "version": "1.0.0",
   "dependencies": {
-    "stripe": "^14.0.0"
+    "stripe": "^14.0.0",
+    "@netlify/blobs": "^8.0.0"
   }
 }
