@@ -28,14 +28,14 @@
     position:fixed; top:0; left:0; right:0; z-index:100;
     display:flex; justify-content:space-between; align-items:center;
     padding:1.2rem 3rem;
-    background:rgba(44,31,20,0.0);
+    background:linear-gradient(to bottom, rgba(44,31,20,0.55) 0%, rgba(44,31,20,0.0) 100%);
     transition: background 0.4s, padding 0.4s;
   }
   nav.scrolled { background:rgba(44,31,20,0.92); backdrop-filter:blur(8px); padding:0.8rem 3rem; }
   .nav-logo { font-family:'Playfair Display',serif; font-size:1.4rem; color:var(--white); letter-spacing:0.05em; }
   .nav-logo span { color:var(--gold); font-style:italic; }
   .nav-links { display:flex; gap:2rem; list-style:none; }
-  .nav-links a { color:rgba(255,255,255,0.9); text-decoration:none; font-size:0.85rem; letter-spacing:0.12em; text-transform:uppercase; transition:color 0.2s; }
+  .nav-links a { color:#ffffff; text-shadow:0 1px 4px rgba(0,0,0,0.6); text-decoration:none; font-size:0.85rem; letter-spacing:0.12em; text-transform:uppercase; transition:color 0.2s; }
   .nav-links a:hover { color:var(--gold); }
   .nav-book { background:var(--terra); color:white!important; padding:0.5rem 1.4rem!important; border-radius:2px; }
   .nav-book:hover { background:var(--dusk)!important; color:white!important; }
@@ -1371,16 +1371,7 @@ document.addEventListener('keydown', e => { if(e.key==='Escape') closeLightbox()
 // Set active tab style on load
 document.querySelector('.gtab.active').style.borderBottom='2px solid var(--gold)';
 document.querySelector('.gtab.active').style.color='white';
-</script>
 
-<!-- FOOTER -->
-<footer>
-  <h3>Mesa del Mar</h3>
-  <p style="margin:0.5rem 0 1rem">Baja California Sur, Mexico &nbsp;·&nbsp; <span style="color:var(--gold);">CASARANCHOLEONERO@GMAIL.COM</span></p>
-  <p style="font-size:0.78rem;opacity:0.5">© 2026 Mesa del Mar · mesadelmar.mx · All rights reserved</p>
-</footer>
-
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 // FAQ accordion
 function toggleFaq(btn) {
   const answer = btn.nextElementSibling;
@@ -2020,4 +2011,34 @@ async function submitBooking(type) {
   try {
     const response = await fetch(FORMSPREE_ENDPOINTS[type], {
       method: 'POST',
-      headers:
+      headers:    'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
+    body: JSON.stringify(data)
+  });
+  const result = await response.json();
+  if (response.ok) {
+    bookingForm.style.display = 'none';
+    successMsg.style.display = 'block';
+  } else {
+    alert('Something went wrong. Please try again or contact us directly.');
+    btn.textContent = originalText;
+    btn.disabled = false;
+  }
+  } catch(err) {
+    alert('Something went wrong. Please try again or contact us directly.');
+    btn.textContent = originalText;
+    btn.disabled = false;
+  }
+}
+</script>
+
+<!-- FOOTER -->
+<footer>
+  <h3>Mesa del Mar</h3>
+  <p style="margin:0.5rem 0 1rem">Baja California Sur, Mexico &nbsp;·&nbsp; <span style="color:var(--gold);">CASARANCHOLEONERO@GMAIL.COM</span></p>
+  <p style="font-size:0.78rem;opacity:0.5">© 2026 Mesa del Mar · mesadelmar.mx · All rights reserved</p>
+</footer>
+
+</body>
+</html>
