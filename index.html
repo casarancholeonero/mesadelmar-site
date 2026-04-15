@@ -1636,32 +1636,20 @@ function updatePriceDisplay(method) {
 // AIRBNB iCAL SYNC
 // Fetches blocked dates from Airbnb and disables them in the date picker
 // ============================================================
-const AIRBNB_ICAL_URL = 'https://www.airbnb.com/calendar/ical/21548101.ics?t=6f97db20045143bc9dbca26aa4ff086e';
-const AIRBNB_SOURCES = [
-  () => fetch('/.netlify/functions/airbnb-cal'),
-  () => fetch(`https://corsproxy.io/?${encodeURIComponent(AIRBNB_ICAL_URL)}`),
-  () => fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(AIRBNB_ICAL_URL)}`),
-  () => fetch(`https://thingproxy.freeboard.io/fetch/${AIRBNB_ICAL_URL}`),
-];
-
 let blockedRanges = []; // [{start: Date, end: Date}]
 
 async function loadAirbnbCalendar() {
-  for (const source of AIRBNB_SOURCES) {
-    try {
-      const res = await source();
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const ical = await res.text();
-      if (!ical.includes('BEGIN:VCALENDAR')) throw new Error('Invalid iCal response');
-      blockedRanges = parseIcal(ical);
-      applyBlockedDates();
-      console.log(`Airbnb calendar loaded — ${blockedRanges.length} blocked period(s)`);
-      return;
-    } catch (err) {
-      console.warn(`Airbnb calendar source failed, trying next...`, err.message);
-    }
+  try {
+    const res = await fetch('/.netlify/functions/airbnb-cal');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const ical = await res.text();
+    if (!ical.includes('BEGIN:VCALENDAR')) throw new Error('Invalid iCal response');
+    blockedRanges = parseIcal(ical);
+    applyBlockedDates();
+    console.log(`Airbnb calendar loaded — ${blockedRanges.length} blocked period(s)`);
+  } catch (err) {
+    console.warn('Could not load Airbnb calendar — form still works without live blocking.', err.message);
   }
-  console.warn('Could not load Airbnb calendar — form still works without live blocking.');
 }
 
 function parseIcal(text) {
