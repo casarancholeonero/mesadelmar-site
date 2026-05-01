@@ -1549,9 +1549,36 @@ function showStripeModal(stripe, clientSecret, bookingData) {
   // Set summary text
   const summary = document.getElementById('stripe-modal-summary');
   if (summary) {
-    summary.innerHTML = bookingData.type === 'casita'
-      ? `La Casita · ${bookingData.nights} nights<br>${bookingData.checkin} → ${bookingData.checkout}<br><strong>Total: $${parseFloat(bookingData.amount).toLocaleString()}</strong> (incl. 3% card fee)`
-      : `El Jefe Charter · ${bookingData.checkin}<br><strong>Total: $1,339</strong> (incl. 3% card fee)`;
+    const fmt = (v) => '$' + Number(v || 0).toLocaleString();
+    if (bookingData.type === 'casita') {
+      const nights = bookingData.nights || '?';
+      const subtotal = fmt(bookingData.subtotal);
+      const cleaning = fmt(bookingData.cleaningFee);
+      const total = fmt(bookingData.total);
+      const deposit = fmt(bookingData.amount);
+      const balance = fmt(bookingData.balance);
+      summary.innerHTML = `
+        La Casita · ${nights} night${nights==='1'?'':'s'}<br>
+        ${bookingData.checkin} → ${bookingData.checkout}<br>
+        Subtotal: ${subtotal} · Cleaning fee: ${cleaning}<br>
+        <strong>Total: ${total}</strong><br>
+        Deposit today: <strong>${deposit}</strong> · Balance due later: ${balance}
+      `;
+    } else {
+      const days = bookingData.days || '1';
+      const subtotal = fmt(bookingData.subtotal);
+      const iva = fmt(bookingData.iva);
+      const total = fmt(bookingData.total);
+      const deposit = fmt(bookingData.amount);
+      const balance = fmt(bookingData.balance);
+      summary.innerHTML = `
+        El Jefe Charter · ${days} day${days==='1'?'':'s'}<br>
+        Charter date: ${bookingData.checkin}<br>
+        Subtotal: ${subtotal} · IVA (16%): ${iva}<br>
+        <strong>Total: ${total}</strong><br>
+        Deposit today: <strong>${deposit}</strong> · Balance due later: ${balance}
+      `;
+    }
   }
 
   modal.style.display = 'flex';
