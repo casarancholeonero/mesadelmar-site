@@ -122,6 +122,54 @@
 
   .empty-state { text-align:center; padding:2rem; color:#9a8a7a; font-size:0.9rem; }
 
+  /* ACTION ITEMS */
+  .tab-btn .count-badge {
+    display:inline-block; background:var(--terra); color:white;
+    border-radius:20px; padding:0.1rem 0.55rem; margin-left:0.4rem;
+    font-size:0.7rem; letter-spacing:0; font-weight:500; line-height:1.4;
+    vertical-align:middle;
+  }
+  .tab-btn .count-badge.zero { background:#c8c0b3; }
+
+  .action-card {
+    border:1px solid #e8dccc; border-radius:4px; padding:1rem 1.2rem;
+    margin-bottom:0.8rem; background:#fff;
+    display:grid; grid-template-columns: 1fr auto; gap:1rem; align-items:center;
+  }
+  .action-card.urgent { border-left:4px solid #e57373; }
+  .action-card.soon   { border-left:4px solid var(--gold); }
+  .action-card.upcoming { border-left:4px solid #c8c0b3; }
+  .action-card.done { background:#f5f5f0; opacity:0.85; }
+
+  .action-info h4 { font-family:'Playfair Display',serif; font-size:1rem; margin-bottom:0.2rem; }
+  .action-info .sub { font-size:0.78rem; color:#9a8a7a; margin-bottom:0.4rem; }
+  .action-info .meta { font-size:0.82rem; color:#5a4a3a; line-height:1.6; }
+  .action-info .meta strong { color:var(--deep); }
+  .action-info .due-pill {
+    display:inline-block; padding:0.15rem 0.6rem; border-radius:20px;
+    font-size:0.72rem; margin-left:0.3rem;
+  }
+  .due-pill.urgent { background:#fce4e4; color:#c62828; }
+  .due-pill.soon { background:#fff3e0; color:#e65100; }
+  .due-pill.upcoming { background:#f0eee4; color:#6b5a4a; }
+
+  .action-controls {
+    display:flex; flex-direction:column; gap:0.4rem; min-width:180px;
+  }
+  .action-checkbox {
+    display:flex; align-items:center; gap:0.5rem; font-size:0.82rem; color:#5a4a3a;
+    cursor:pointer; user-select:none;
+  }
+  .action-checkbox input { width:16px; height:16px; cursor:pointer; }
+  .action-checkbox.done label { text-decoration:line-through; color:#9a8a7a; }
+
+  .section-subhead {
+    font-size:0.72rem; letter-spacing:0.18em; text-transform:uppercase;
+    color:#9a8a7a; margin:1.5rem 0 0.7rem; padding-bottom:0.4rem;
+    border-bottom:1px solid var(--sand);
+  }
+  .section-subhead:first-child { margin-top:0; }
+
   .success-toast {
     position:fixed; bottom:2rem; right:2rem; background:var(--deep); color:white;
     padding:1rem 1.5rem; border-radius:4px; font-size:0.85rem;
@@ -157,14 +205,26 @@
 
     <!-- TABS -->
     <div class="tabs">
-      <button class="tab-btn active" onclick="switchTab('bookings')">📋 All Bookings</button>
+      <button class="tab-btn active" onclick="switchTab('actions')">🔔 Action Items <span class="count-badge zero" id="action-count">0</span></button>
+      <button class="tab-btn" onclick="switchTab('bookings')">📋 All Bookings</button>
       <button class="tab-btn" onclick="switchTab('casita-cal')">🏡 Casita Calendar</button>
       <button class="tab-btn" onclick="switchTab('boat-cal')">⚓ El Jefe Calendar</button>
       <button class="tab-btn" onclick="switchTab('block')">🚫 Block Dates</button>
     </div>
 
+    <!-- ACTION ITEMS -->
+    <div class="tab-panel active" id="tab-actions">
+      <div class="card">
+        <h2>Balance Invoicing — Next 14 Days</h2>
+        <p style="color:#6b5a4a; font-size:0.88rem; margin-bottom:1.2rem; line-height:1.6;">
+          Bookings where the balance is due within the next 14 days. For each one: schedule a Stripe invoice (Dashboard → Invoices → Create Invoice → set scheduled send date), then check it off here. Once the guest pays, mark "Balance Paid".
+        </p>
+        <div id="actions-list"><div class="empty-state">Loading...</div></div>
+      </div>
+    </div>
+
     <!-- ALL BOOKINGS -->
-    <div class="tab-panel active" id="tab-bookings">
+    <div class="tab-panel" id="tab-bookings">
       <div class="card">
         <h2>Confirmed Bookings</h2>
         <div id="bookings-list"><div class="empty-state">Loading...</div></div>
@@ -291,6 +351,7 @@ async function loadData() {
     const data = await res.json();
     allBookings = Array.isArray(data.bookings) ? data.bookings : [];
     allBlocks = Array.isArray(data.blocks) ? data.blocks : [];
+    renderActions();
     renderBookings();
     renderCalendar('casita');
     renderCalendar('boat');
@@ -300,6 +361,7 @@ async function loadData() {
     // Still show dashboard even if data load fails
     allBookings = [];
     allBlocks = [];
+    renderActions();
     renderBookings();
     renderCalendar('casita');
     renderCalendar('boat');
@@ -313,8 +375,187 @@ function switchTab(name) {
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   event.target.classList.add('active');
   document.getElementById('tab-' + name).classList.add('active');
+  if (name === 'actions') renderActions();
   if (name === 'casita-cal') renderCalendar('casita');
   if (name === 'boat-cal') renderCalendar('boat');
+}
+
+// ── ACTION ITEMS ──
+// Helpers used by both renderActions() and renderBookings()
+function balanceDueDate(booking) {
+  // Balance is due 2 weeks before the relevant arrival date.
+  // Casita: 2 weeks before checkin. Boat: 2 weeks before charter date (stored as `checkin`).
+  const arrival = booking.checkin;
+  if (!arrival) return null;
+  const d = new Date(arrival + 'T00:00:00');
+  d.setDate(d.getDate() - 14);
+  return d;
+}
+function fmtDate(d) {
+  if (!d) return '—';
+  return d.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+}
+function daysUntil(d) {
+  if (!d) return null;
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const target = new Date(d);
+  target.setHours(0,0,0,0);
+  return Math.round((target - today) / (1000*60*60*24));
+}
+function bookingFullName(b) {
+  return (b.firstName || '') + ' ' + (b.lastName || '');
+}
+
+async function setBookingFlag(id, field, value) {
+  try {
+    const res = await fetch('/.netlify/functions/update-booking', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-key': adminKey,
+      },
+      body: JSON.stringify({ id, field, value }),
+    });
+    if (!res.ok) {
+      const text = await res.text();
+      console.error('Update failed:', text);
+      showToast('Update failed — please try again');
+      return false;
+    }
+    // Update local cache so we don't need a full reload
+    const b = allBookings.find(x => x.id === id);
+    if (b) {
+      b[field] = !!value;
+      b[field + 'At'] = value ? new Date().toISOString() : null;
+    }
+    showToast('Saved');
+    renderActions();
+    renderBookings();
+    return true;
+  } catch (err) {
+    console.error(err);
+    showToast('Network error — please try again');
+    return false;
+  }
+}
+
+function renderActions() {
+  const el = document.getElementById('actions-list');
+  const countEl = document.getElementById('action-count');
+
+  // Filter to bookings where balance is still owed (not yet paid) and arrival is in the future-ish window.
+  // Show: bookings where balance-due-date is within the next 14 days OR already past but balance not yet paid.
+  const today = new Date(); today.setHours(0,0,0,0);
+  const horizon = new Date(today); horizon.setDate(horizon.getDate() + 14);
+
+  const candidates = allBookings
+    .filter(b => b.checkin) // must have an arrival date
+    .filter(b => !b.balancePaid) // hide once balance paid
+    .map(b => {
+      const due = balanceDueDate(b);
+      return { booking: b, due, daysOut: daysUntil(due) };
+    })
+    // Show items whose balance-due date already passed (still need invoicing)
+    // OR whose balance-due is within the next 14 days
+    .filter(x => x.due && x.daysOut <= 14)
+    // Hide bookings whose stay has already ended
+    .filter(x => {
+      const endStr = x.booking.checkout || x.booking.checkin;
+      const end = new Date(endStr + 'T00:00:00');
+      return end >= today;
+    })
+    .sort((a, b) => a.due - b.due);
+
+  // Update count badge — show only items still needing invoice scheduling
+  const pendingInvoices = candidates.filter(x => !x.booking.invoiceScheduled).length;
+  countEl.textContent = pendingInvoices;
+  countEl.classList.toggle('zero', pendingInvoices === 0);
+
+  if (candidates.length === 0) {
+    el.innerHTML = '<div class="empty-state">🎉 Nothing to do! No balances are due in the next 14 days.</div>';
+    return;
+  }
+
+  // Split into "Needs Invoice" and "Invoice Scheduled, Awaiting Payment"
+  const needsInvoice = candidates.filter(x => !x.booking.invoiceScheduled);
+  const awaitingPayment = candidates.filter(x => x.booking.invoiceScheduled && !x.booking.balancePaid);
+
+  let html = '';
+
+  if (needsInvoice.length > 0) {
+    html += '<div class="section-subhead">Needs Invoice — ' + needsInvoice.length + '</div>';
+    html += needsInvoice.map(x => actionCardHtml(x, false)).join('');
+  }
+
+  if (awaitingPayment.length > 0) {
+    html += '<div class="section-subhead">Invoice Sent — Awaiting Payment — ' + awaitingPayment.length + '</div>';
+    html += awaitingPayment.map(x => actionCardHtml(x, true)).join('');
+  }
+
+  el.innerHTML = html;
+}
+
+function actionCardHtml(item, isScheduled) {
+  const b = item.booking;
+  const days = item.daysOut;
+  let urgency = 'upcoming';
+  let pillLabel = '';
+  if (days < 0) { urgency = 'urgent'; pillLabel = 'Overdue ' + Math.abs(days) + ' day' + (Math.abs(days)===1?'':'s'); }
+  else if (days <= 3) { urgency = 'urgent'; pillLabel = 'Due in ' + days + ' day' + (days===1?'':'s'); }
+  else if (days <= 7) { urgency = 'soon'; pillLabel = 'Due in ' + days + ' days'; }
+  else { urgency = 'upcoming'; pillLabel = 'Due in ' + days + ' days'; }
+
+  const cls = isScheduled ? 'done' : urgency;
+  const propIcon = b.type === 'casita' ? '🏡' : '⚓';
+  const propLabel = b.type === 'casita' ? 'La Casita' : 'El Jefe';
+  const stayLabel = b.type === 'casita'
+    ? (b.nights ? b.nights + ' night' + (b.nights==='1'?'':'s') : '')
+    : (b.days ? b.days + ' day' + (b.days==='1'?'':'s') + ' charter' : '1 day charter');
+
+  const balance = b.balance != null ? '$' + Number(b.balance).toLocaleString() : '—';
+  const total = b.total != null ? '$' + Number(b.total).toLocaleString() : '—';
+
+  // Pricing detail line
+  let pricingDetail = '';
+  if (b.type === 'casita' && b.cleaningFee != null) {
+    pricingDetail = `Subtotal $${Number(b.subtotal||0).toLocaleString()} + cleaning fee $${Number(b.cleaningFee).toLocaleString()} = total ${total}`;
+  } else if (b.type === 'boat' && b.iva != null) {
+    pricingDetail = `Subtotal $${Number(b.subtotal||0).toLocaleString()} + IVA $${Number(b.iva).toLocaleString()} = total ${total}`;
+  }
+
+  return `
+    <div class="action-card ${cls}">
+      <div class="action-info">
+        <h4>${propIcon} ${propLabel} — ${escapeHtml(bookingFullName(b))}
+          <span class="due-pill ${urgency}">${pillLabel}</span>
+        </h4>
+        <div class="sub">${escapeHtml(b.email||'')} · ${escapeHtml(b.phone||'')}</div>
+        <div class="meta">
+          <strong>Arrival:</strong> ${b.checkin || '—'} · ${stayLabel}<br>
+          <strong>Balance due:</strong> ${balance} by ${fmtDate(item.due)}<br>
+          <span style="color:#9a8a7a; font-size:0.78rem;">${pricingDetail}</span>
+        </div>
+      </div>
+      <div class="action-controls">
+        <label class="action-checkbox ${b.invoiceScheduled?'done':''}">
+          <input type="checkbox" ${b.invoiceScheduled?'checked':''}
+                 onchange="setBookingFlag('${b.id}','invoiceScheduled', this.checked)">
+          <span>Invoice scheduled</span>
+        </label>
+        <label class="action-checkbox ${b.balancePaid?'done':''}">
+          <input type="checkbox" ${b.balancePaid?'checked':''}
+                 ${!b.invoiceScheduled?'disabled':''}
+                 onchange="setBookingFlag('${b.id}','balancePaid', this.checked)">
+          <span>Balance paid</span>
+        </label>
+      </div>
+    </div>
+  `;
+}
+
+function escapeHtml(s) {
+  return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
 // ── BOOKINGS TABLE ──
@@ -323,21 +564,42 @@ function renderBookings() {
   if (allBookings.length === 0) {
     el.innerHTML = '<div class="empty-state">No confirmed bookings yet.</div>';
   } else {
-    const rows = allBookings.map(b => `
-      <tr>
-        <td><span class="badge badge-${b.type}">${b.type === 'casita' ? '🏡 Casita' : '⚓ El Jefe'}</span></td>
-        <td>${b.firstName || ''} ${b.lastName || ''}<br><span style="color:#9a8a7a;font-size:0.8rem">${b.email || ''}</span></td>
-        <td>${b.checkin || '—'}</td>
-        <td>${b.checkout || b.checkin || '—'}</td>
-        <td>${b.nights ? b.nights + ' night(s)' : '1 day'}</td>
-        <td>$${b.amount ? b.amount.toLocaleString() : '—'}</td>
-        <td><span class="badge badge-confirmed">Confirmed</span></td>
-      </tr>
-    `).join('');
-    el.innerHTML = `<table class="booking-table">
-      <thead><tr><th>Type</th><th>Guest</th><th>Check-in</th><th>Check-out</th><th>Duration</th><th>Deposit</th><th>Status</th></tr></thead>
+    // Sort: most recent check-in first
+    const sorted = [...allBookings].sort((a,b) => (b.checkin||'').localeCompare(a.checkin||''));
+    const rows = sorted.map(b => {
+      const total = b.total != null ? '$' + Number(b.total).toLocaleString() : '—';
+      const balance = b.balance != null ? '$' + Number(b.balance).toLocaleString() : '—';
+      const due = balanceDueDate(b);
+      const dueStr = due ? fmtDate(due) : '—';
+      const deposit = b.amount ? '$' + Number(b.amount).toLocaleString() : '—';
+
+      let invoiceBadge = '';
+      if (b.balancePaid) invoiceBadge = '<span class="badge badge-confirmed">✓ Paid</span>';
+      else if (b.invoiceScheduled) invoiceBadge = '<span class="badge badge-block">📧 Sent</span>';
+      else invoiceBadge = '<span class="badge" style="background:#f0eee4; color:#9a8a7a;">— Pending</span>';
+
+      const stayLabel = b.type === 'casita'
+        ? (b.nights ? b.nights + ' night(s)' : '—')
+        : (b.days ? b.days + ' day(s)' : '1 day');
+
+      return `
+        <tr>
+          <td><span class="badge badge-${b.type}">${b.type === 'casita' ? '🏡 Casita' : '⚓ El Jefe'}</span></td>
+          <td>${escapeHtml(bookingFullName(b))}<br><span style="color:#9a8a7a;font-size:0.8rem">${escapeHtml(b.email || '')}</span></td>
+          <td>${b.checkin || '—'}</td>
+          <td>${b.checkout || b.checkin || '—'}</td>
+          <td>${stayLabel}</td>
+          <td>${total}</td>
+          <td>${deposit}</td>
+          <td>${balance}<br><span style="color:#9a8a7a;font-size:0.78rem">due ${dueStr}</span></td>
+          <td>${invoiceBadge}</td>
+        </tr>
+      `;
+    }).join('');
+    el.innerHTML = `<div style="overflow-x:auto"><table class="booking-table">
+      <thead><tr><th>Type</th><th>Guest</th><th>Check-in</th><th>Check-out</th><th>Duration</th><th>Total</th><th>Deposit</th><th>Balance</th><th>Invoice</th></tr></thead>
       <tbody>${rows}</tbody>
-    </table>`;
+    </table></div>`;
   }
 
   const bl = document.getElementById('blocks-list');
@@ -349,7 +611,7 @@ function renderBookings() {
         <td><span class="badge badge-${b.type}">${b.type === 'casita' ? '🏡 Casita' : '⚓ El Jefe'}</span></td>
         <td>${b.checkin}</td>
         <td>${b.checkout}</td>
-        <td>${b.note || '—'}</td>
+        <td>${escapeHtml(b.note || '—')}</td>
         <td><button class="btn btn-danger btn-sm" onclick="removeBlock('${b.id}')">Remove</button></td>
       </tr>
     `).join('');

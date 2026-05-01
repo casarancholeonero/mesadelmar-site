@@ -892,6 +892,14 @@
           <div class="form-total" id="casita-price-box" style="display:none; flex-direction:column; align-items:stretch; gap:0.5rem;">
             <div style="display:flex; justify-content:space-between;">
               <span class="form-total-label" id="casita-nights-label"></span>
+              <span style="font-family:'Playfair Display',serif; font-size:1.1rem; color:var(--deep);" id="casita-subtotal"></span>
+            </div>
+            <div style="display:flex; justify-content:space-between;">
+              <span style="font-size:0.85rem; color:#7a6a5a;">Cleaning fee</span>
+              <span style="font-size:0.95rem; color:#5a4a3a;">$250</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; border-top:1px solid #e0d5c5; padding-top:0.5rem;">
+              <span class="form-total-label">Total</span>
               <span class="form-total-price" id="casita-total"></span>
             </div>
             <div style="display:flex; justify-content:space-between; border-top:1px solid #e0d5c5; padding-top:0.5rem;">
@@ -899,9 +907,14 @@
               <span style="font-family:'Playfair Display',serif; font-size:1.1rem; color:var(--terra);" id="casita-deposit"></span>
             </div>
             <div style="display:flex; justify-content:space-between;">
-              <span style="font-size:0.8rem; color:#7a6a5a;">Balance due</span>
-              <span style="font-size:0.8rem; color:#7a6a5a;" id="casita-balance-date"></span>
+              <span style="font-size:0.8rem; color:#7a6a5a;">Balance due (incl. cleaning fee)</span>
+              <span style="font-size:0.9rem; color:#5a4a3a;" id="casita-balance-amount"></span>
             </div>
+            <div style="display:flex; justify-content:space-between;">
+              <span style="font-size:0.75rem; color:#9a8a7a; font-style:italic;">Balance due by</span>
+              <span style="font-size:0.75rem; color:#9a8a7a; font-style:italic;" id="casita-balance-date"></span>
+            </div>
+            <p style="font-size:0.72rem; color:#9a8a7a; line-height:1.5; margin-top:0.3rem;">A flat $250 cleaning fee is collected with your final balance, not the deposit.</p>
           </div>
           <div id="casita-no-dates" style="background:#f9f5f0; border:1px solid #e0d5c5; border-radius:2px; padding:0.8rem 1rem; margin-bottom:0.5rem; font-size:0.85rem; color:#9a8a7a;">
             Select dates to see your total and deposit
@@ -952,13 +965,27 @@
         </div>
         <div class="booking-form">
           <h4 class="form-title">Book El Jefe</h4>
-          <div class="form-group">
-            <label>Your Casita Check-in Date *</label>
-            <input type="date" id="boat-casita-checkin" min="" required>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Casita Check-in *</label>
+              <input type="date" id="boat-casita-checkin" min="" required onchange="calcTotal('boat')">
+            </div>
+            <div class="form-group">
+              <label>Casita Check-out *</label>
+              <input type="date" id="boat-casita-checkout" min="" required onchange="calcTotal('boat')">
+            </div>
           </div>
-          <div class="form-group">
-            <label>Charter Date</label>
-            <input type="date" id="boat-date" min="" onchange="calcTotal('boat')">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Charter Start Date</label>
+              <input type="date" id="boat-date" min="" onchange="calcTotal('boat')">
+            </div>
+            <div class="form-group">
+              <label>Number of Charter Days</label>
+              <select id="boat-days" onchange="calcTotal('boat')">
+                <option value="1" selected>1 day</option>
+              </select>
+            </div>
           </div>
           <div class="form-group">
             <label>Number of Anglers / Guests</label>
@@ -994,17 +1021,30 @@
           <!-- PRICE BREAKDOWN -->
           <div class="form-total" style="flex-direction:column; align-items:stretch; gap:0.5rem;">
             <div style="display:flex; justify-content:space-between;">
-              <span class="form-total-label" id="boat-nights-label">1 day charter</span>
-              <span class="form-total-price" id="boat-total">$1,300</span>
+              <span class="form-total-label" id="boat-nights-label">1 day charter × $1,300</span>
+              <span style="font-family:'Playfair Display',serif; font-size:1.1rem; color:var(--deep);" id="boat-subtotal">$1,300</span>
+            </div>
+            <div style="display:flex; justify-content:space-between;">
+              <span style="font-size:0.85rem; color:#7a6a5a;">IVA (16%)</span>
+              <span style="font-size:0.95rem; color:#5a4a3a;" id="boat-iva">$208</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; border-top:1px solid #e0d5c5; padding-top:0.5rem;">
+              <span class="form-total-label">Total</span>
+              <span class="form-total-price" id="boat-total">$1,508</span>
             </div>
             <div style="display:flex; justify-content:space-between; border-top:1px solid #e0d5c5; padding-top:0.5rem;">
               <span style="font-size:0.8rem; color:#7a6a5a;">50% deposit due today</span>
-              <span style="font-family:'Playfair Display',serif; font-size:1.1rem; color:var(--terra);">$650</span>
+              <span style="font-family:'Playfair Display',serif; font-size:1.1rem; color:var(--terra);" id="boat-deposit">$650</span>
             </div>
             <div style="display:flex; justify-content:space-between;">
-              <span style="font-size:0.8rem; color:#7a6a5a;">Balance due</span>
-              <span style="font-size:0.8rem; color:#7a6a5a;" id="boat-balance-date">2 weeks before charter date</span>
+              <span style="font-size:0.8rem; color:#7a6a5a;">Balance due (incl. IVA)</span>
+              <span style="font-size:0.9rem; color:#5a4a3a;" id="boat-balance-amount">$858</span>
             </div>
+            <div style="display:flex; justify-content:space-between;">
+              <span style="font-size:0.75rem; color:#9a8a7a; font-style:italic;">Balance due by</span>
+              <span style="font-size:0.75rem; color:#9a8a7a; font-style:italic;" id="boat-balance-date">2 weeks before charter date</span>
+            </div>
+            <p style="font-size:0.72rem; color:#9a8a7a; line-height:1.5; margin-top:0.3rem;">Mexican IVA (16%) is required by law and collected with your final balance, not the deposit.</p>
           </div>
 
           <!-- CANCELLATION POLICY -->
@@ -1182,7 +1222,7 @@
           <span class="faq-icon">+</span>
         </button>
         <div class="faq-a">
-          <p>Absolutely. We can recommend a local company that delivers ATVs directly to the property. For those looking for a different on-water experience, pangas and other boat types can also be reserved through nearby fleets — just ask us and we'll point you in the right direction.</p>
+          <p>Absolutely. We can recommend a local company that delivers ATVs directly to the property. For those looking for a different type of boat, pangas or cruisers can also be reserved through nearby fleets — just ask us and we'll point you in the right direction.</p>
         </div>
       </div>
 
@@ -1369,11 +1409,8 @@ function closeLightbox() {
 document.addEventListener('keydown', e => { if(e.key==='Escape') closeLightbox(); });
 
 // Set active tab style on load
-const activeGtab = document.querySelector('.gtab.active');
-if (activeGtab) {
-  activeGtab.style.borderBottom='2px solid var(--gold)';
-  activeGtab.style.color='white';
-}
+document.querySelector('.gtab.active').style.borderBottom='2px solid var(--gold)';
+document.querySelector('.gtab.active').style.color='white';
 
 // FAQ accordion
 function toggleFaq(btn) {
@@ -1617,7 +1654,9 @@ function updatePriceDisplay(method) {
   const nights = Math.round((new Date(co) - new Date(ci)) / (1000*60*60*24));
   if (nights <= 0) return;
 
-  const baseTotal = nights * 600;
+  const subtotal = nights * 600;
+  const cleaningFee = 250;
+  const baseTotal = subtotal + cleaningFee;
   const cardTotal = Math.round(baseTotal * 1.03 + 0.30); // 3% + $0.30
 
   const totalEl = document.getElementById('casita-total');
@@ -1636,19 +1675,22 @@ function updatePriceDisplay(method) {
 // AIRBNB iCAL SYNC
 // Fetches blocked dates from Airbnb and disables them in the date picker
 // ============================================================
+const AIRBNB_ICAL_URL = 'https://www.airbnb.com/calendar/ical/21548101.ics?t=6f97db20045143bc9dbca26aa4ff086e';
+const CORS_PROXY = 'https://corsproxy.io/?';
+
 let blockedRanges = []; // [{start: Date, end: Date}]
 
 async function loadAirbnbCalendar() {
   try {
-    const res = await fetch('/.netlify/functions/airbnb-cal');
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const res = await fetch(CORS_PROXY + encodeURIComponent(AIRBNB_ICAL_URL));
+    if (!res.ok) throw new Error('Failed to fetch calendar');
     const ical = await res.text();
-    if (!ical.includes('BEGIN:VCALENDAR')) throw new Error('Invalid iCal response');
     blockedRanges = parseIcal(ical);
     applyBlockedDates();
-    console.log(`Airbnb calendar loaded — ${blockedRanges.length} blocked period(s)`);
+    console.log(`✓ Airbnb calendar loaded — ${blockedRanges.length} blocked period(s)`);
   } catch (err) {
-    console.warn('Could not load Airbnb calendar — form still works without live blocking.', err.message);
+    console.warn('Could not load Airbnb calendar:', err.message);
+    // Fail silently — form still works, just without live blocking
   }
 }
 
@@ -1830,8 +1872,11 @@ function calcTotal(type) {
     if (ci && co) {
       const nights = Math.round((new Date(co)-new Date(ci))/(1000*60*60*24));
       if (nights > 0) {
-        const baseTotal = nights * 600;
-        const deposit = Math.round(baseTotal * 0.50);
+        const subtotal = nights * 600;
+        const cleaningFee = 250;
+        const total = subtotal + cleaningFee;
+        const deposit = Math.round(subtotal * 0.50); // 50% of nightly subtotal — cleaning fee NOT included
+        const balance = total - deposit;
 
         // Balance due = 2 weeks before check-in
         const checkinDate = new Date(ci + 'T00:00:00');
@@ -1839,9 +1884,11 @@ function calcTotal(type) {
         balanceDue.setDate(balanceDue.getDate() - 14);
         const balanceStr = balanceDue.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 
-        document.getElementById('casita-nights-label').textContent = nights + ' night' + (nights>1?'s':'') + ' x $600';
-        document.getElementById('casita-total').textContent = '$' + baseTotal.toLocaleString();
+        document.getElementById('casita-nights-label').textContent = nights + ' night' + (nights>1?'s':'') + ' × $600';
+        document.getElementById('casita-subtotal').textContent = '$' + subtotal.toLocaleString();
+        document.getElementById('casita-total').textContent = '$' + total.toLocaleString();
         document.getElementById('casita-deposit').textContent = '$' + deposit.toLocaleString();
+        document.getElementById('casita-balance-amount').textContent = '$' + balance.toLocaleString();
         document.getElementById('casita-balance-date').textContent = balanceStr;
         document.getElementById('casita-price-box').style.display = 'flex';
         document.getElementById('casita-no-dates').style.display = 'none';
@@ -1851,6 +1898,41 @@ function calcTotal(type) {
       document.getElementById('casita-no-dates').style.display = 'block';
     }
   } else if (type === 'boat') {
+    // Dynamically populate charter-days dropdown based on Casita stay length.
+    // Max charter days = Casita nights - 1 (guests need at least one non-charter day).
+    const casitaCI = document.getElementById('boat-casita-checkin').value;
+    const casitaCO = document.getElementById('boat-casita-checkout').value;
+    const daysSelect = document.getElementById('boat-days');
+    let maxDays = 1;
+    if (casitaCI && casitaCO) {
+      const nights = Math.round((new Date(casitaCO) - new Date(casitaCI)) / (1000*60*60*24));
+      maxDays = Math.max(1, nights - 1);
+    }
+    // Rebuild options preserving current selection when possible.
+    const prev = parseInt(daysSelect.value) || 1;
+    daysSelect.innerHTML = '';
+    for (let d = 1; d <= maxDays; d++) {
+      const opt = document.createElement('option');
+      opt.value = d;
+      opt.textContent = d + ' day' + (d > 1 ? 's' : '');
+      if (d === Math.min(prev, maxDays)) opt.selected = true;
+      daysSelect.appendChild(opt);
+    }
+
+    const days = parseInt(daysSelect.value) || 1;
+    const subtotal = days * 1300;
+    const iva = Math.round(subtotal * 0.16);
+    const total = subtotal + iva;
+    const deposit = Math.round(subtotal * 0.50);
+    const balance = total - deposit;
+
+    document.getElementById('boat-nights-label').textContent = days + ' day' + (days>1?'s':'') + ' × $1,300';
+    document.getElementById('boat-subtotal').textContent = '$' + subtotal.toLocaleString();
+    document.getElementById('boat-iva').textContent = '$' + iva.toLocaleString();
+    document.getElementById('boat-total').textContent = '$' + total.toLocaleString();
+    document.getElementById('boat-deposit').textContent = '$' + deposit.toLocaleString();
+    document.getElementById('boat-balance-amount').textContent = '$' + balance.toLocaleString();
+
     const bd = document.getElementById('boat-date').value;
     if (bd) {
       const charterDate = new Date(bd + 'T00:00:00');
@@ -1859,8 +1941,6 @@ function calcTotal(type) {
       const balanceStr = balanceDue.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
       document.getElementById('boat-balance-date').textContent = balanceStr;
     }
-    document.getElementById('boat-total').textContent = '$1,300';
-    document.getElementById('boat-nights-label').textContent = '1 day charter';
   }
 }
 
@@ -1892,8 +1972,11 @@ async function submitBooking(type) {
       const ci = document.getElementById('casita-checkin').value;
       const co = document.getElementById('casita-checkout').value;
       const nights = ci && co ? Math.round((new Date(co)-new Date(ci))/(1000*60*60*24)) : 0;
-      const baseTotal = nights * 600;
-      const deposit = Math.round(baseTotal * 0.50);
+      const subtotal = nights * 600;
+      const cleaningFee = 250;
+      const total = subtotal + cleaningFee;
+      const deposit = Math.round(subtotal * 0.50); // 50% of nightly subtotal — cleaning fee NOT included
+      const balance = total - deposit;
       const cardTotal = deposit.toString();
       const bookingData = {
         type: 'casita',
@@ -1902,6 +1985,10 @@ async function submitBooking(type) {
         nights: nights.toString(),
         guests: document.getElementById('casita-guests').value,
         amount: cardTotal,
+        subtotal: subtotal.toString(),
+        cleaningFee: cleaningFee.toString(),
+        total: total.toString(),
+        balance: balance.toString(),
       };
       // Collect name/email/phone
       bookingForm.querySelectorAll('input[type=text]').forEach(el => {
@@ -1919,28 +2006,45 @@ async function submitBooking(type) {
 
   // Route boat payments through Stripe
   if (type === 'boat') {
-    // Validate casita check-in date is provided
+    // Validate casita check-in and check-out dates are provided
     const casitaCheckin = document.getElementById('boat-casita-checkin').value;
+    const casitaCheckout = document.getElementById('boat-casita-checkout').value;
     if (!casitaCheckin) {
       document.getElementById('boat-casita-checkin').style.borderColor = '#e57373';
       alert('Please enter your Casita check-in date to confirm eligibility for El Jefe.');
       return;
     }
+    if (!casitaCheckout) {
+      document.getElementById('boat-casita-checkout').style.borderColor = '#e57373';
+      alert('Please enter your Casita check-out date to confirm eligibility for El Jefe.');
+      return;
+    }
     const charterDate = document.getElementById('boat-date').value;
     if (!charterDate) {
       document.getElementById('boat-date').style.borderColor = '#e57373';
-      alert('Please select a charter date.');
+      alert('Please select a charter start date.');
       return;
     }
-    const deposit = 650; // 50% of $1,300
+    const days = parseInt(document.getElementById('boat-days').value) || 1;
+    const subtotal = days * 1300;
+    const iva = Math.round(subtotal * 0.16);
+    const total = subtotal + iva;
+    const deposit = Math.round(subtotal * 0.50); // 50% of subtotal — IVA not included in deposit
+    const balance = total - deposit;
     const bookingData = {
       type: 'boat',
       checkin: charterDate,
       checkout: charterDate,
-      nights: '1',
-      guests: bookingForm.querySelectorAll('select')[0].value,
+      nights: days.toString(),
+      days: days.toString(),
+      guests: bookingForm.querySelectorAll('select')[1].value, // second select is guests (first is days)
       amount: deposit.toString(),
+      subtotal: subtotal.toString(),
+      iva: iva.toString(),
+      total: total.toString(),
+      balance: balance.toString(),
       casitaCheckin: casitaCheckin,
+      casitaCheckout: casitaCheckout,
     };
     bookingForm.querySelectorAll('input[type=text]').forEach(el => {
       if (el.placeholder==='Jane') bookingData.firstName = el.value;
@@ -1969,23 +2073,32 @@ async function submitBooking(type) {
     const checkin  = document.getElementById('casita-checkin').value;
     const checkout = document.getElementById('casita-checkout').value;
     const nights   = checkin && checkout ? Math.round((new Date(checkout)-new Date(checkin))/(1000*60*60*24)) : 0;
-    const total    = nights * 600;
+    const subtotal = nights * 600;
+    const cleaningFee = 250;
+    const total    = subtotal + cleaningFee;
     data._subject  = `Booking Request — La Casita Mesa del Mar`;
     data.property  = 'La Casita — Mesa del Mar';
     data.checkin   = checkin;
     data.checkout  = checkout;
     data.nights    = nights ? `${nights} night${nights>1?'s':''}` : 'Not specified';
-    data.total     = total ? `$${total.toLocaleString()} USD` : 'To be calculated';
+    data.subtotal  = nights ? `$${subtotal.toLocaleString()} USD` : 'To be calculated';
+    data.cleaningFee = `$${cleaningFee} USD`;
+    data.total     = nights ? `$${total.toLocaleString()} USD (incl. cleaning fee)` : 'To be calculated';
     data.guests    = document.getElementById('casita-guests').value;
   } else {
     const date     = document.getElementById('boat-date').value;
+    const days     = parseInt(document.getElementById('boat-days').value) || 1;
+    const subtotal = days * 1300;
+    const iva      = Math.round(subtotal * 0.16);
+    const total    = subtotal + iva;
     data._subject  = `Charter Request — El Jefe Mesa del Mar`;
     data.vessel    = 'El Jefe — Luhrs Sport Fisher';
     data.date      = date || 'Not specified';
-    data.total     = '$1,300 USD';
-    data.trip_type = bookingForm.querySelector('select:nth-of-type(2)') 
-                     ? bookingForm.querySelectorAll('select')[1].value : '';
-    data.guests    = bookingForm.querySelectorAll('select')[0].value;
+    data.days      = days + ' day' + (days>1?'s':'');
+    data.subtotal  = `$${subtotal.toLocaleString()} USD`;
+    data.iva       = `$${iva.toLocaleString()} USD (16%)`;
+    data.total     = `$${total.toLocaleString()} USD (incl. IVA)`;
+    data.guests    = bookingForm.querySelectorAll('select')[1].value;
   }
 
   // Collect name/email/phone/message
@@ -2011,18 +2124,21 @@ async function submitBooking(type) {
   try {
     const response = await fetch(FORMSPREE_ENDPOINTS[type], {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
       body: JSON.stringify(data)
     });
-  const result = await response.json();
-  if (response.ok) {
-    bookingForm.style.display = 'none';
-    successMsg.style.display = 'block';
-  } else {
-    alert('Something went wrong. Please try again or contact us directly.');
-    btn.textContent = originalText;
-    btn.disabled = false;
-  }
+    const result = await response.json();
+    if (response.ok) {
+      bookingForm.style.display = 'none';
+      successMsg.style.display = 'block';
+    } else {
+      alert('Something went wrong. Please try again or contact us directly.');
+      btn.textContent = originalText;
+      btn.disabled = false;
+    }
   } catch(err) {
     alert('Something went wrong. Please try again or contact us directly.');
     btn.textContent = originalText;
