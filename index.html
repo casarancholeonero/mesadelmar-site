@@ -152,6 +152,23 @@
 
   /* BOOKING FORM */
   .booking-form { background:var(--sand); padding:2.5rem; border-radius:2px; height:fit-content; }
+  /* PUBLIC MINI CALENDAR */
+  .pub-cal { background:#fff; border:1px solid #e8dccc; border-radius:4px; padding:1.2rem 1.4rem; margin-bottom:1.5rem; }
+  .pub-cal-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:0.8rem; }
+  .pub-cal-title { font-family:'Playfair Display',serif; font-size:1.05rem; color:var(--deep); margin:0; }
+  .pub-cal-nav { background:transparent; border:1px solid #e0d5c5; color:#5a4a3a; padding:0.3rem 0.7rem; border-radius:3px; cursor:pointer; font-size:0.85rem; }
+  .pub-cal-nav:hover { background:var(--sand); }
+  .pub-cal-grid { display:grid; grid-template-columns:repeat(7, 1fr); gap:3px; }
+  .pub-cal-dow { text-align:center; font-size:0.68rem; letter-spacing:0.1em; text-transform:uppercase; color:#9a8a7a; padding:0.3rem 0; }
+  .pub-cal-day { text-align:center; font-size:0.82rem; padding:0.45rem 0; border-radius:3px; color:#5a4a3a; }
+  .pub-cal-day.empty { visibility:hidden; }
+  .pub-cal-day.past { color:#c8c0b3; }
+  .pub-cal-day.booked { background:var(--terra); color:#fff; }
+  .pub-cal-day.today { font-weight:600; outline:1.5px solid var(--gold); outline-offset:-2px; }
+  .pub-cal-legend { display:flex; gap:1.2rem; margin-top:0.8rem; font-size:0.72rem; color:#7a6a5a; }
+  .pub-cal-legend-swatch { display:inline-block; width:10px; height:10px; border-radius:2px; vertical-align:middle; margin-right:0.3rem; }
+  .pub-cal-legend-swatch.booked { background:var(--terra); }
+  .pub-cal-legend-swatch.available { background:#fff; border:1px solid #e0d5c5; }
   .form-title { font-family:'Playfair Display',serif; font-size:1.3rem; margin-bottom:1.5rem; }
   .form-group { margin-bottom:1.2rem; }
   .form-group label { display:block; font-size:0.75rem; letter-spacing:0.15em; text-transform:uppercase; color:#7a6a5a; margin-bottom:0.4rem; }
@@ -662,7 +679,7 @@
         <h2 class="section-title" style="color:white">Meet <em style="color:var(--sky)">El Jefe</em></h2>
         <div class="divider" style="background:var(--sky)"></div>
         <p>El Jefe is a classic Luhrs sport fisher built for the legendary waters of the Sea of Cortez — one of the world's great fishing grounds. Whether you're chasing marlin, dorado, or yellowfin tuna, or simply wanting to explore hidden coves and pristine coastline, El Jefe delivers the full Baja experience.</p>
-        <p>Fully equipped and crewed, she's available exclusively to Mesa del Mar guests. Combine a stay at the casita with a day on the water for the ultimate Baja adventure.</p>
+        <p>Fully equipped and crewed, she pairs perfectly with a stay at La Casita — combine your Baja getaway with a day on the water for the ultimate adventure.</p>
         <div class="boat-specs">
           <div class="boat-spec">
             <div class="boat-spec-label">Vessel</div>
@@ -843,6 +860,19 @@
           <span>📅</span>
           <span>📅 Unavailable dates are blocked automatically. If you have questions about availability, please <a href="#contact" style="color:var(--terra)">contact us</a> or <a href="https://www.airbnb.com/rooms/21548101" target="_blank" style="color:var(--terra)">view our Airbnb listing</a>.</span>
         </div>
+        <!-- PUBLIC AVAILABILITY CALENDAR — CASITA -->
+        <div class="pub-cal" id="pub-cal-casita">
+          <div class="pub-cal-header">
+            <button class="pub-cal-nav" onclick="pubCalNav('casita',-1)">←</button>
+            <p class="pub-cal-title" id="pub-cal-title-casita">—</p>
+            <button class="pub-cal-nav" onclick="pubCalNav('casita',1)">→</button>
+          </div>
+          <div class="pub-cal-grid" id="pub-cal-grid-casita"></div>
+          <div class="pub-cal-legend">
+            <span><span class="pub-cal-legend-swatch booked"></span>Booked</span>
+            <span><span class="pub-cal-legend-swatch available"></span>Available</span>
+          </div>
+        </div>
         <div class="booking-form">
           <h4 class="form-title">Request to Book</h4>
           <div class="form-row">
@@ -954,14 +984,27 @@
           <li>Classic Luhrs sport fishing vessel</li>
           <li>Sea of Cortez — world-class fishing waters</li>
           <li>Marlin, dorado, yellowfin tuna & more</li>
-          <li>Available exclusively to property guests</li>
+          <li>Charter dates must fall within your Casita stay</li>
           <li>Contact host for crew & tackle details</li>
         </ul>
       </div>
       <div>
+        <!-- PUBLIC AVAILABILITY CALENDAR — EL JEFE -->
+        <div class="pub-cal" id="pub-cal-boat">
+          <div class="pub-cal-header">
+            <button class="pub-cal-nav" onclick="pubCalNav('boat',-1)">←</button>
+            <p class="pub-cal-title" id="pub-cal-title-boat">—</p>
+            <button class="pub-cal-nav" onclick="pubCalNav('boat',1)">→</button>
+          </div>
+          <div class="pub-cal-grid" id="pub-cal-grid-boat"></div>
+          <div class="pub-cal-legend">
+            <span><span class="pub-cal-legend-swatch booked"></span>Booked</span>
+            <span><span class="pub-cal-legend-swatch available"></span>Available</span>
+          </div>
+        </div>
         <!-- EXCLUSIVE NOTICE -->
         <div style="background:#f0f7ff; border:1px solid #c8dff5; border-radius:2px; padding:1rem 1.2rem; margin-bottom:1.5rem;">
-          <p style="font-size:0.85rem; color:#2c5282; line-height:1.7;">⚓ <strong>El Jefe is available exclusively to La Casita guests.</strong> Please enter your Casita check-in date below to confirm eligibility.</p>
+          <p style="font-size:0.85rem; color:#2c5282; line-height:1.7;">⚓ <strong>Charter dates must fall within your Casita stay.</strong> Please enter your Casita check-in and check-out dates below.</p>
         </div>
         <div class="booking-form">
           <h4 class="form-title">Book El Jefe</h4>
@@ -1061,7 +1104,7 @@
           </div>
 
           <button class="btn btn-primary" style="width:100%" onclick="submitBooking('boat')">Request & Pay Deposit</button>
-          <p class="form-note">Available exclusively to La Casita guests. We will confirm your dates within 24 hours. Balance due 2 weeks before charter.</p>
+          <p class="form-note">Charter dates must fall within your Casita stay. We will confirm your dates within 24 hours. Balance due 2 weeks before charter.</p>
         </div>
         <div class="success-msg" id="boat-success">
           ✓ Your charter request has been received! Captain will be in touch within 24 hours.
@@ -1835,6 +1878,61 @@ async function loadBlockedDates() {
   } catch(e) {
     console.warn('Could not load blocked dates:', e.message);
   }
+  // Render public calendars after blocked-date data loads (or fails)
+  renderPubCal('casita');
+  renderPubCal('boat');
+}
+
+// ── PUBLIC READ-ONLY CALENDAR (above each booking form) ──
+const pubCalState = {
+  casita: { year: new Date().getFullYear(), month: new Date().getMonth() },
+  boat:   { year: new Date().getFullYear(), month: new Date().getMonth() },
+};
+const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+function pubCalNav(type, delta) {
+  const s = pubCalState[type];
+  s.month += delta;
+  if (s.month < 0) { s.month = 11; s.year -= 1; }
+  if (s.month > 11) { s.month = 0; s.year += 1; }
+  renderPubCal(type);
+}
+
+function renderPubCal(type) {
+  const s = pubCalState[type];
+  const titleEl = document.getElementById('pub-cal-title-' + type);
+  const gridEl = document.getElementById('pub-cal-grid-' + type);
+  if (!titleEl || !gridEl) return;
+
+  titleEl.textContent = MONTH_NAMES[s.month] + ' ' + s.year;
+
+  const blocked = type === 'casita' ? ownerBlockedCasita : ownerBlockedBoat;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const todayStr = today.toISOString().split('T')[0];
+
+  let html = '';
+  // Days-of-week headers
+  ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(d => {
+    html += `<div class="pub-cal-dow">${d}</div>`;
+  });
+
+  // Blank cells before the 1st
+  const firstDay = new Date(s.year, s.month, 1);
+  const startWeekday = firstDay.getDay();
+  for (let i = 0; i < startWeekday; i++) html += '<div class="pub-cal-day empty"></div>';
+
+  // Days of the month
+  const daysInMonth = new Date(s.year, s.month + 1, 0).getDate();
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dateStr = `${s.year}-${String(s.month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const cellDate = new Date(s.year, s.month, day); cellDate.setHours(0,0,0,0);
+    const classes = ['pub-cal-day'];
+    if (cellDate < today) classes.push('past');
+    if (blocked.has(dateStr)) classes.push('booked');
+    if (dateStr === todayStr) classes.push('today');
+    html += `<div class="${classes.join(' ')}">${day}</div>`;
+  }
+  gridEl.innerHTML = html;
 }
 
 function isOwnerBlocked(dateStr, type) {
