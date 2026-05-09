@@ -17,7 +17,13 @@ exports.handler = async function(event) {
     return { statusCode: 400, body: `Webhook Error: ${err.message}` };
   }
 
-  if (stripeEvent.type === 'payment_intent.succeeded') {
+  // Listen for both authorization (manual-capture flow) and final capture.
+  // - 'payment_intent.amount_capturable_updated' fires the moment a card is
+  //   authorized for our $X amount with capture_method:manual. This is when
+  //   we actually want to record the booking — the guest has done their part.
+  // - 'payment_intent.succeeded' still fires later when we manually capture
+  //   in Stripe Dashboard. We ignore it here to avoid double-recording.
+  if (stripeEvent.type === 'payment_intent.amount_capturable_updated') {
     const paymentIntent = stripeEvent.data.object;
     const meta = paymentIntent.metadata;
 
