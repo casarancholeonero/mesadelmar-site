@@ -86,11 +86,19 @@ exports.handler = async function(event, context) {
       timestamp: new Date().toISOString(),
     };
 
-    fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify(notifyBody),
-    }).catch(e => console.warn('Formspree attempt notification failed:', e.message));
+    // Await the fetch so the function waits for Formspree to respond before
+    // returning. In serverless environments, fire-and-forget fetch() gets
+    // cut off when the function returns. The try/catch guarantees a Formspree
+    // failure can never block the guest from completing payment.
+    try {
+      await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(notifyBody),
+      });
+    } catch (e) {
+      console.warn('Formspree attempt notification failed:', e.message);
+    }
 
     return {
       statusCode: 200,
