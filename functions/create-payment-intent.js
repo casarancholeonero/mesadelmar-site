@@ -1,138 +1,117 @@
 const Stripe = require('stripe');
 
-exports.handler = async function(event) {
+exports.handler = async function(event, context) {
+  // Only allow POST
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
 
   const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
-  const sig = event.headers['stripe-signature'];
-  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
-  let stripeEvent;
   try {
-    stripeEvent = stripe.webhooks.constructEvent(event.body, sig, webhookSecret);
-  } catch (err) {
-    console.error('Webhook signature verification failed:', err.message);
-    return { statusCode: 400, body: `Webhook Error: ${err.message}` };
-  }
+    const data = JSON.parse(event.body);
+    const amount = parseInt(data.amount); // amount in dollars
+    const amountInCents = amount * 100;
 
-  // Listen for both authorization (manual-capture flow) and final capture.
-  // - 'payment_intent.amount_capturable_updated' fires the moment a card is
-  //   authorized for our $X amount with capture_method:manual. This is when
-  //   we actually want to record the booking — the guest has done their part.
-  // - 'payment_intent.succeeded' still fires later when we manually capture
-  //   in Stripe Dashboard. We ignore it here to avoid double-recording.
-  if (stripeEvent.type === 'payment_intent.amount_capturable_updated') {
-    const paymentIntent = stripeEvent.data.object;
-    const meta = paymentIntent.metadata;
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: amountInCents,
+      currency: 'usd',
+      capture_method: 'manual', // authorize only, capture manually later
+      metadata: {
+        // Core booking info
+        type: data.type || 'casita',
+        checkin: data.checkin || '',
+        checkout: data.checkout || '',
+        nights: data.nights || '',
+        guests: data.guests || '',
 
-    // Helper: parse string-from-metadata into a number, or null if absent/blank
-    const num = (v) => {
-      if (v === undefined || v === null || v === '') return null;
-      const n = Number(v);
-      return Number.isFinite(n) ? n : null;
+        // Guest contact
+        firstName: data.firstName || '',
+        lastName: data.lastName || '',
+        email: data.email || '',
+        phone: data.phone || '',
+        message: (data.message || '').slice(0, 500), // Stripe metadata 500-char limit
+
+        // Pricing breakdown
+        // Casita: subtotal (nights x rate) + cleaningFee = total; deposit = 50% of subtotal
+        // Boat:   subtotal (days x rate)  + iva         = total; deposit = 50% of subtotal
+        subtotal: data.subtotal || '',
+        cleaningFee: data.cleaningFee || '',
+        iva: data.iva || '',
+        total: data.total || '',
+        balance: data.balance || '',
+
+        // Boat-specific
+        days: data.days || '',
+        casitaCheckin: data.casitaCheckin || '',
+        casitaCheckout: data.casitaCheckout || '',
+      },
+      receipt_email: data.email || null,
+    });
+
+    // ── FORMSPREE NOTIFICATION (booking attempt) ──
+    // Fires the moment a guest clicks "Request & Pay Deposit" — even if they
+    // abandon the card-entry step or get a stuck spinner. Failure here must
+    // never block the response to the guest.
+    const FORMSPREE = {
+      casita: 'https://formspree.io/f/mreywayn',
+      boat:   'https://formspree.io/f/maqpgdle',
+    };
+    const endpoint = FORMSPREE[data.type] || FORMSPREE.casita;
+    const propertyName = data.type === 'boat' ? 'El Jefe' : 'La Casita';
+    const guestName = `${data.firstName || ''} ${data.lastName || ''}`.trim() || 'Unknown guest';
+
+    const notifyBody = {
+      _subject: `🟡 Booking attempt — ${propertyName} — ${guestName}`,
+      stage: 'ATTEMPT (deposit not yet captured)',
+      property: propertyName,
+      guest: guestName,
+      email: data.email || '',
+      phone: data.phone || '',
+      message: data.message || '',
+      checkin: data.checkin || '',
+      checkout: data.checkout || '',
+      nights: data.nights || '',
+      days: data.days || '',
+      casitaCheckin: data.casitaCheckin || '',
+      casitaCheckout: data.casitaCheckout || '',
+      guests: data.guests || '',
+      subtotal: data.subtotal || '',
+      cleaningFee: data.cleaningFee || '',
+      iva: data.iva || '',
+      total: data.total || '',
+      deposit: amount,
+      balance: data.balance || '',
+      stripePaymentIntent: paymentIntent.id,
+      timestamp: new Date().toISOString(),
     };
 
-    const booking = {
-      id: paymentIntent.id,
-      type: meta.type || 'casita',
-
-      // Stay dates
-      checkin: meta.checkin || '',
-      checkout: meta.checkout || '',
-      nights: meta.nights || '',
-      days: meta.days || '',                 // Boat: charter days
-      casitaCheckin: meta.casitaCheckin || '',   // Boat: linked Casita stay
-      casitaCheckout: meta.casitaCheckout || '',
-
-      // Guest details
-      guests: meta.guests || '',
-      firstName: meta.firstName || '',
-      lastName: meta.lastName || '',
-      email: meta.email || '',
-      phone: meta.phone || '',
-      message: meta.message || '',
-
-      // Payment + pricing
-      amount: paymentIntent.amount / 100,        // deposit actually paid
-      subtotal: num(meta.subtotal),
-      cleaningFee: num(meta.cleaningFee),
-      iva: num(meta.iva),
-      total: num(meta.total),
-      balance: num(meta.balance),
-
-      // Workflow tracking (defaults; admin dashboard updates these)
-      invoiceScheduled: false,
-      invoiceScheduledAt: null,
-      balancePaid: false,
-      balancePaidAt: null,
-
-      // Status + audit
-      status: 'confirmed',
-      source: 'stripe',
-      createdAt: new Date().toISOString(),
-    };
-
+    // Await the fetch so the function waits for Formspree to respond before
+    // returning. In serverless environments, fire-and-forget fetch() gets
+    // cut off when the function returns. The try/catch guarantees a Formspree
+    // failure can never block the guest from completing payment.
     try {
-      const { getStore } = require('@netlify/blobs');
-      const store = getStore('bookings');
-      const existing = await store.get('all', { type: 'json' }).catch(() => []);
-      const bookings = Array.isArray(existing) ? existing : [];
-      bookings.push(booking);
-      await store.set('all', JSON.stringify(bookings));
-      console.log('Booking saved:', booking.id);
-    } catch (err) {
-      console.error('Failed to save booking:', err.message);
-    }
-
-    // ── FORMSPREE NOTIFICATION (booking confirmed) ──
-    // Fires after Stripe confirms the deposit was authorized successfully.
-    // Failure here must never break webhook delivery (we still return 200).
-    try {
-      const FORMSPREE = {
-        casita: 'https://formspree.io/f/mreywayn',
-        boat:   'https://formspree.io/f/maqpgdle',
-      };
-      const endpoint = FORMSPREE[booking.type] || FORMSPREE.casita;
-      const propertyName = booking.type === 'boat' ? 'El Jefe' : 'La Casita';
-      const guestName = `${booking.firstName || ''} ${booking.lastName || ''}`.trim() || 'Unknown guest';
-
-      const notifyBody = {
-        _subject: `✅ Booking confirmed — ${propertyName} — ${guestName}`,
-        stage: 'CONFIRMED (deposit authorized — capture manually in Stripe)',
-        property: propertyName,
-        guest: guestName,
-        email: booking.email,
-        phone: booking.phone,
-        message: booking.message,
-        checkin: booking.checkin,
-        checkout: booking.checkout,
-        nights: booking.nights,
-        days: booking.days,
-        casitaCheckin: booking.casitaCheckin,
-        casitaCheckout: booking.casitaCheckout,
-        guests: booking.guests,
-        subtotal: booking.subtotal,
-        cleaningFee: booking.cleaningFee,
-        iva: booking.iva,
-        total: booking.total,
-        depositPaid: booking.amount,
-        balance: booking.balance,
-        stripePaymentIntent: booking.id,
-        nextStep: 'Capture this payment in Stripe Dashboard',
-        timestamp: booking.createdAt,
-      };
-
       await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify(notifyBody),
       });
-    } catch (err) {
-      console.warn('Formspree confirmation notification failed:', err.message);
+    } catch (e) {
+      console.warn('Formspree attempt notification failed:', e.message);
     }
-  }
 
-  return { statusCode: 200, body: JSON.stringify({ received: true }) };
+    return {
+      statusCode: 200,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ clientSecret: paymentIntent.client_secret }),
+    };
+
+  } catch (err) {
+    console.error('Stripe error:', err);
+    return {
+      statusCode: 500,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ error: err.message }),
+    };
+  }
 };
