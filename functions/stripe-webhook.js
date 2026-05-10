@@ -75,17 +75,44 @@ exports.handler = async function(event) {
     };
 
     try {
-      const { getStore } = require('@netlify/blobs');
-      const store = getStore({
-        name: 'bookings',
-        siteID: process.env.NETLIFY_SITE_ID,
-        token: process.env.NETLIFY_AUTH_TOKEN,
-      });
-      const existing = await store.get('all', { type: 'json' }).catch(() => []);
-      const bookings = Array.isArray(existing) ? existing : [];
-      bookings.push(booking);
-      await store.set('all', JSON.stringify(bookings));
-      console.log('Booking saved:', booking.id);
+      // Use raw HTTP API for Netlify Blobs (same pattern as get-bookings.js).
+      // The @netlify/blobs SDK won't auto-detect the environment in this
+      // function context, so we go directly to the HTTP API which works.
+      const siteId = process.env.NETLIFY_SITE_ID;
+      const token = process.env.NETLIFY_AUTH_TOKEN;
+
+      if (!siteId || !token) {
+        console.error('Cannot save booking: missing env vars',
+          { hasSiteId: !!siteId, hasToken: !!token });
+      } else {
+        const baseUrl = `https://api.netlify.com/api/v1/blobs/${siteId}/bookings`;
+        const headers = { 'Authorization': `Bearer ${token}` };
+
+        // Read existing bookings list
+        let bookings = [];
+        const readRes = await fetch(`${baseUrl}/all`, { headers });
+        if (readRes.ok) {
+          const text = await readRes.text();
+          try { bookings = JSON.parse(text); } catch(_) { bookings = []; }
+          if (!Array.isArray(bookings)) bookings = [];
+        }
+
+        // Append the new booking and write the whole list back
+        bookings.push(booking);
+        const writeRes = await fetch(`${baseUrl}/all`, {
+          method: 'PUT',
+          headers: { ...headers, 'Content-Type': 'application/json' },
+          body: JSON.stringify(bookings),
+        });
+
+        if (!writeRes.ok) {
+          const errText = await writeRes.text().catch(() => '');
+          console.error('Failed to save booking — HTTP',
+            writeRes.status, errText);
+        } else {
+          console.log('Booking saved:', booking.id);
+        }
+      }
     } catch (err) {
       console.error('Failed to save booking:', err.message);
     }
