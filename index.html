@@ -2156,10 +2156,20 @@ async function submitBooking(type) {
     const total = subtotal + iva;
     const deposit = Math.round(subtotal * 0.50); // 50% of subtotal — IVA not included in deposit
     const balance = total - deposit;
+
+    // Compute the charter END date: start + (days) so a 2-day charter starting
+    // June 29 ends after June 30. We block dates [start, end) inclusive of all
+    // charter days. checkout = charter start + days.
+    const charterEnd = (() => {
+      const d = new Date(charterDate + 'T00:00:00');
+      d.setDate(d.getDate() + days);
+      return d.toISOString().split('T')[0];
+    })();
+
     const bookingData = {
       type: 'boat',
       checkin: charterDate,
-      checkout: charterDate,
+      checkout: charterEnd,
       nights: days.toString(),
       days: days.toString(),
       guests: bookingForm.querySelectorAll('select')[1].value, // second select is guests (first is days)
