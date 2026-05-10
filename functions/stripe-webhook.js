@@ -76,7 +76,11 @@ exports.handler = async function(event) {
 
     try {
       const { getStore } = require('@netlify/blobs');
-      const store = getStore('bookings');
+      const store = getStore({
+        name: 'bookings',
+        siteID: process.env.NETLIFY_SITE_ID,
+        token: process.env.NETLIFY_AUTH_TOKEN,
+      });
       const existing = await store.get('all', { type: 'json' }).catch(() => []);
       const bookings = Array.isArray(existing) ? existing : [];
       bookings.push(booking);
