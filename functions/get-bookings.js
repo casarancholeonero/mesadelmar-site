@@ -4,11 +4,14 @@ exports.handler = async function(event) {
     return { statusCode: 401, body: JSON.stringify({ error: 'Unauthorized' }) };
   }
 
-  const siteId = process.env.NETLIFY_SITE_ID;
+  // Hardcoded to match stripe-webhook's effective siteId.
+  // process.env.NETLIFY_SITE_ID returns a different value for different functions
+  // in this Netlify project, which caused get-bookings to read from the wrong blob store.
+  const siteId = 'cb8ea563-05dc-4e13-8d42-0e1ad838699f';
   const token = process.env.NETLIFY_AUTH_TOKEN;
 
-  if (!siteId || !token) {
-    return { statusCode: 500, body: JSON.stringify({ error: 'Missing env vars', hasSiteId: !!siteId, hasToken: !!token }) };
+  if (!token) {
+    return { statusCode: 500, body: JSON.stringify({ error: 'Missing auth token' }) };
   }
 
   try {
@@ -17,22 +20,11 @@ exports.handler = async function(event) {
 
     let bookings = [];
     let blocks = [];
-    let debug = { siteId, baseUrl };
 
     const bookingsRes = await fetch(`${baseUrl}/all`, { headers });
-    debug.bookingsStatus = bookingsRes.status;
-    debug.bookingsOk = bookingsRes.ok;
     if (bookingsRes.ok) {
       const text = await bookingsRes.text();
-      debug.bookingsTextLen = text.length;
-      debug.bookingsTextSample = text.substring(0, 200);
-      try { bookings = JSON.parse(text); } catch(e) { 
-        debug.parseError = e.message;
-        bookings = []; 
-      }
-    } else {
-      const errText = await bookingsRes.text().catch(() => '');
-      debug.bookingsError = errText.substring(0, 200);
+      try { bookings = JSON.parse(text); } catch(e) { bookings = []; }
     }
 
     const blocksRes = await fetch(`${baseUrl}/blocks`, { headers });
@@ -44,7 +36,7 @@ exports.handler = async function(event) {
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ bookings, blocks, debug }),
+      body: JSON.stringify({ bookings, blocks }),
     };
   } catch (err) {
     return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
