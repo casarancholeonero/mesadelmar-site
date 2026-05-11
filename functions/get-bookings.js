@@ -4,14 +4,11 @@ exports.handler = async function(event) {
     return { statusCode: 401, body: JSON.stringify({ error: 'Unauthorized' }) };
   }
 
-  // Hardcoded to match stripe-webhook's effective siteId.
-  // process.env.NETLIFY_SITE_ID returns a different value for different functions
-  // in this Netlify project, which caused get-bookings to read from the wrong blob store.
-  const siteId = 'cb8ea563-05dc-4e13-8d42-0e1ad838699f';
+  const siteId = process.env.NETLIFY_SITE_ID;
   const token = process.env.NETLIFY_AUTH_TOKEN;
 
-  if (!token) {
-    return { statusCode: 500, body: JSON.stringify({ error: 'Missing auth token' }) };
+  if (!siteId || !token) {
+    return { statusCode: 500, body: JSON.stringify({ error: 'Missing env vars', hasSiteId: !!siteId, hasToken: !!token }) };
   }
 
   try {
