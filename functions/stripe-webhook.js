@@ -1,5 +1,6 @@
 const Stripe = require('stripe');
-const { connectLambda, getStore } = require('@netlify/blobs');
+
+const SITE_ID = '7163a8ff-fc01-4cfb-a8f4-5c51ef600414';
 
 exports.handler = async function(event) {
   if (event.httpMethod !== 'POST') {
@@ -59,29 +60,41 @@ exports.handler = async function(event) {
     };
 
     try {
-      // Bootstrap Blobs SDK from Lambda runtime context
-      connectLambda(event);
-      const store = getStore('bookings');
+      const token = process.env.NETLIFY_AUTH_TOKEN;
+      if (!token) {
+        console.error('Missing NETLIFY_AUTH_TOKEN');
+      } else {
+        const baseUrl = `https://api.netlify.com/api/v1/blobs/${SITE_ID}/bookings`;
+        const headers = { 'Authorization': `Bearer ${token}` };
 
-      // Read existing bookings list
-      let bookings = [];
-      try {
-        const existing = await store.get('all', { type: 'json' });
-        if (Array.isArray(existing)) bookings = existing;
-      } catch (e) {
-        // 'all' key doesn't exist yet
+        let bookings = [];
+        const readRes = await fetch(`${baseUrl}/all`, { headers });
+        console.log('Read status:', readRes.status);
+        if (readRes.ok) {
+          const text = await readRes.text();
+          try { bookings = JSON.parse(text); } catch(_) { bookings = []; }
+          if (!Array.isArray(bookings)) bookings = [];
+        }
+
+        bookings.push(booking);
+        const writeRes = await fetch(`${baseUrl}/all`, {
+          method: 'PUT',
+          headers: { ...headers, 'Content-Type': 'application/json' },
+          body: JSON.stringify(bookings),
+        });
+
+        console.log('Write status:', writeRes.status);
+        if (!writeRes.ok) {
+          const errText = await writeRes.text().catch(() => '');
+          console.error('Failed to save booking — HTTP', writeRes.status, errText);
+        } else {
+          console.log('Booking saved:', booking.id);
+        }
       }
-
-      // Append the new booking and write back
-      bookings.push(booking);
-      await store.setJSON('all', bookings);
-
-      console.log('Booking saved:', booking.id);
     } catch (err) {
       console.error('Failed to save booking:', err.message);
     }
 
-    // Formspree notification
     try {
       const FORMSPREE = {
         casita: 'https://formspree.io/f/mreywayn',
