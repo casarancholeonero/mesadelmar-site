@@ -549,7 +549,7 @@ function actionCardHtml(item, isScheduled) {
         </h4>
         <div class="sub">${escapeHtml(b.email||'')} · ${escapeHtml(b.phone||'')}</div>
         <div class="meta">
-          <strong>Arrival:</strong> ${b.checkin || '—'} · ${stayLabel}<br>
+          <strong>${b.type === 'casita' ? 'Arrival' : 'Charter date'}:</strong> ${b.checkin || '—'} · ${stayLabel}<br>
           <strong>Balance due:</strong> ${balance} by ${fmtDate(item.due)}<br>
           <span style="color:#9a8a7a; font-size:0.78rem;">${pricingDetail}</span>
         </div>
@@ -599,12 +599,31 @@ function renderBookings() {
         ? (b.nights ? b.nights + ' night(s)' : '—')
         : (b.days ? b.days + ' day(s)' : '1 day');
 
+      // For El Jefe, show the actual on-water dates (charter start through last
+      // day on the boat), not check-in / check-out language. Stripe stores the
+      // checkout date as the morning AFTER the last on-boat day, so subtract 1
+      // to get the actual last on-water date.
+      let arriveLabel, departLabel;
+      if (b.type === 'casita') {
+        arriveLabel = b.checkin || '—';
+        departLabel = b.checkout || b.checkin || '—';
+      } else {
+        arriveLabel = b.checkin || '—';
+        if (b.checkout) {
+          const end = new Date(b.checkout + 'T00:00:00');
+          end.setDate(end.getDate() - 1);
+          departLabel = end.toISOString().split('T')[0];
+        } else {
+          departLabel = arriveLabel;
+        }
+      }
+
       return `
         <tr>
           <td><span class="badge badge-${b.type}">${b.type === 'casita' ? '🏡 Casita' : '⚓ El Jefe'}</span></td>
           <td>${escapeHtml(bookingFullName(b))}<br><span style="color:#9a8a7a;font-size:0.8rem">${escapeHtml(b.email || '')}</span></td>
-          <td>${b.checkin || '—'}</td>
-          <td>${b.checkout || b.checkin || '—'}</td>
+          <td>${arriveLabel}</td>
+          <td>${departLabel}</td>
           <td>${stayLabel}</td>
           <td>${total}</td>
           <td>${deposit}</td>
@@ -614,7 +633,7 @@ function renderBookings() {
       `;
     }).join('');
     el.innerHTML = `<div style="overflow-x:auto"><table class="booking-table">
-      <thead><tr><th>Type</th><th>Guest</th><th>Check-in</th><th>Check-out</th><th>Duration</th><th>Total</th><th>Deposit</th><th>Balance</th><th>Invoice</th></tr></thead>
+      <thead><tr><th>Type</th><th>Guest</th><th>From</th><th>To</th><th>Duration</th><th>Total</th><th>Deposit</th><th>Balance</th><th>Invoice</th></tr></thead>
       <tbody>${rows}</tbody>
     </table></div>`;
   }
