@@ -1,39 +1,41 @@
-const { connectLambda, getStore } = require('@netlify/blobs');
+const { connectLambda, getStore, listStores } = require('@netlify/blobs');
 
-exports.handler = async function(event, context) {
+exports.handler = async function(event) {
   const adminKey = event.headers['x-admin-key'];
   if (adminKey !== process.env.ADMIN_PASSWORD) {
     return { statusCode: 401, body: JSON.stringify({ error: 'Unauthorized' }) };
   }
 
   try {
-    // Bootstrap the Blobs SDK with the Lambda function's runtime context.
-    // This injects the right credentials so getStore() works.
     connectLambda(event);
 
-    const store = getStore('bookings');
-
-    let bookings = [];
-    let blocks = [];
+    const result = { stores: {}, listError: null };
 
     try {
-      const bookingsData = await store.get('all', { type: 'json' });
-      if (Array.isArray(bookingsData)) bookings = bookingsData;
+      const listed = await listStores();
+      result.listed = listed;
     } catch (e) {
-      // 'all' key may not exist yet
+      result.listError = e.message;
     }
 
+    // Try reading from store named 'bookings'
     try {
-      const blocksData = await store.get('blocks', { type: 'json' });
-      if (Array.isArray(blocksData)) blocks = blocksData;
+      const store = getStore('bookings');
+      const keys = await store.list();
+      const all = await store.get('all', { type: 'json' });
+      result.stores.bookings = {
+        keys,
+        allLength: Array.isArray(all) ? all.length : 'not array',
+        allSample: Array.isArray(all) && all[0] ? all[0].id : null,
+      };
     } catch (e) {
-      // 'blocks' key may not exist yet
+      result.stores.bookings = { error: e.message };
     }
 
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ bookings, blocks }),
+      body: JSON.stringify(result, null, 2),
     };
   } catch (err) {
     return { statusCode: 500, body: JSON.stringify({ error: err.message, stack: err.stack }) };
