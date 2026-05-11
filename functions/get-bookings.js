@@ -1,18 +1,22 @@
+// Hardcoded to match stripe-webhook. Netlify's process.env.NETLIFY_SITE_ID
+// behaves inconsistently across functions in this project; hardcoding
+// guarantees get-bookings reads from the same blob store stripe-webhook writes.
+const SITE_ID = '7163a8ff-fc01-4cfb-a8f4-5c51ef600414';
+
 exports.handler = async function(event) {
   const adminKey = event.headers['x-admin-key'];
   if (adminKey !== process.env.ADMIN_PASSWORD) {
     return { statusCode: 401, body: JSON.stringify({ error: 'Unauthorized' }) };
   }
 
-  const siteId = process.env.NETLIFY_SITE_ID;
   const token = process.env.NETLIFY_AUTH_TOKEN;
 
-  if (!siteId || !token) {
-    return { statusCode: 500, body: JSON.stringify({ error: 'Missing env vars', hasSiteId: !!siteId, hasToken: !!token }) };
+  if (!token) {
+    return { statusCode: 500, body: JSON.stringify({ error: 'Missing NETLIFY_AUTH_TOKEN' }) };
   }
 
   try {
-    const baseUrl = `https://api.netlify.com/api/v1/blobs/${siteId}/bookings`;
+    const baseUrl = `https://api.netlify.com/api/v1/blobs/${SITE_ID}/bookings`;
     const headers = { 'Authorization': `Bearer ${token}` };
 
     let bookings = [];
