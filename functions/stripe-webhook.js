@@ -1,9 +1,5 @@
 const Stripe = require('stripe');
-
-// Hardcoded to match get-bookings. Netlify's process.env.NETLIFY_SITE_ID
-// behaves inconsistently across functions in this project; hardcoding
-// guarantees stripe-webhook writes to the same blob store get-bookings reads.
-const SITE_ID = 'cb8ea563-05dc-4e13-8d42-0e1ad838699f';
+const { connectLambda, getStore } = require('@netlify/blobs');
 
 exports.handler = async function(event) {
   if (event.httpMethod !== 'POST') {
@@ -63,40 +59,29 @@ exports.handler = async function(event) {
     };
 
     try {
-      const token = process.env.NETLIFY_AUTH_TOKEN;
+      // Bootstrap Blobs SDK from Lambda runtime context
+      connectLambda(event);
+      const store = getStore('bookings');
 
-      if (!token) {
-        console.error('Cannot save booking: missing NETLIFY_AUTH_TOKEN');
-      } else {
-        const baseUrl = `https://api.netlify.com/api/v1/blobs/${SITE_ID}/bookings`;
-        const headers = { 'Authorization': `Bearer ${token}` };
-
-        let bookings = [];
-        const readRes = await fetch(`${baseUrl}/all`, { headers });
-        if (readRes.ok) {
-          const text = await readRes.text();
-          try { bookings = JSON.parse(text); } catch(_) { bookings = []; }
-          if (!Array.isArray(bookings)) bookings = [];
-        }
-
-        bookings.push(booking);
-        const writeRes = await fetch(`${baseUrl}/all`, {
-          method: 'PUT',
-          headers: { ...headers, 'Content-Type': 'application/json' },
-          body: JSON.stringify(bookings),
-        });
-
-        if (!writeRes.ok) {
-          const errText = await writeRes.text().catch(() => '');
-          console.error('Failed to save booking — HTTP', writeRes.status, errText);
-        } else {
-          console.log('Booking saved:', booking.id);
-        }
+      // Read existing bookings list
+      let bookings = [];
+      try {
+        const existing = await store.get('all', { type: 'json' });
+        if (Array.isArray(existing)) bookings = existing;
+      } catch (e) {
+        // 'all' key doesn't exist yet
       }
+
+      // Append the new booking and write back
+      bookings.push(booking);
+      await store.setJSON('all', bookings);
+
+      console.log('Booking saved:', booking.id);
     } catch (err) {
       console.error('Failed to save booking:', err.message);
     }
 
+    // Formspree notification
     try {
       const FORMSPREE = {
         casita: 'https://formspree.io/f/mreywayn',
