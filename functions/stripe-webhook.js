@@ -3,7 +3,7 @@ const Stripe = require('stripe');
 // Hardcoded to match get-bookings. Netlify's process.env.NETLIFY_SITE_ID
 // behaves inconsistently across functions in this project; hardcoding
 // guarantees stripe-webhook writes to the same blob store get-bookings reads.
-const SITE_ID = '7163a8ff-fc01-4cfb-a8f4-5c51ef600414';
+const SITE_ID = 'cb8ea563-05dc-4e13-8d42-0e1ad838699f';
 
 exports.handler = async function(event) {
   if (event.httpMethod !== 'POST') {
