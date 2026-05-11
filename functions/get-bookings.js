@@ -12,43 +12,40 @@ exports.handler = async function(event) {
     return { statusCode: 500, body: JSON.stringify({ error: 'Missing NETLIFY_AUTH_TOKEN' }) };
   }
 
+  const headers = { 'Authorization': `Bearer ${token}` };
+  const tests = {};
+
+  // Test 1: GET on the all blob (what we've been doing)
   try {
-    const baseUrl = `https://api.netlify.com/api/v1/blobs/${SITE_ID}/bookings`;
-    const headers = { 'Authorization': `Bearer ${token}` };
+    const r = await fetch(`https://api.netlify.com/api/v1/blobs/${SITE_ID}/bookings/all`, { headers });
+    const t = await r.text();
+    tests.getAllBlob = { status: r.status, body: t.substring(0, 200) };
+  } catch (e) { tests.getAllBlob = { error: e.message }; }
 
-    let bookings = [];
-    let blocks = [];
-    let debug = { SITE_ID, baseUrl, tokenPrefix: token.substring(0, 10) + '...' };
+  // Test 2: List the store
+  try {
+    const r = await fetch(`https://api.netlify.com/api/v1/blobs/${SITE_ID}/bookings`, { headers });
+    const t = await r.text();
+    tests.listStore = { status: r.status, body: t.substring(0, 300) };
+  } catch (e) { tests.listStore = { error: e.message }; }
 
-    const bookingsRes = await fetch(`${baseUrl}/all`, { headers });
-    debug.bookingsStatus = bookingsRes.status;
-    debug.bookingsOk = bookingsRes.ok;
-    const bookingsText = await bookingsRes.text();
-    debug.bookingsTextLen = bookingsText.length;
-    debug.bookingsTextSample = bookingsText.substring(0, 400);
+  // Test 3: User info to verify the token is valid
+  try {
+    const r = await fetch(`https://api.netlify.com/api/v1/user`, { headers });
+    const t = await r.text();
+    tests.userInfo = { status: r.status, body: t.substring(0, 150) };
+  } catch (e) { tests.userInfo = { error: e.message }; }
 
-    if (bookingsRes.ok) {
-      try { bookings = JSON.parse(bookingsText); } catch(e) { 
-        debug.parseError = e.message;
-        bookings = []; 
-      }
-    }
+  // Test 4: Site info to verify token access to THIS site
+  try {
+    const r = await fetch(`https://api.netlify.com/api/v1/sites/${SITE_ID}`, { headers });
+    const t = await r.text();
+    tests.siteInfo = { status: r.status, body: t.substring(0, 200) };
+  } catch (e) { tests.siteInfo = { error: e.message }; }
 
-    const blocksRes = await fetch(`${baseUrl}/blocks`, { headers });
-    debug.blocksStatus = blocksRes.status;
-    const blocksText = await blocksRes.text();
-    debug.blocksTextLen = blocksText.length;
-
-    if (blocksRes.ok) {
-      try { blocks = JSON.parse(blocksText); } catch(e) { blocks = []; }
-    }
-
-    return {
-      statusCode: 200,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ bookings, blocks, debug }),
-    };
-  } catch (err) {
-    return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
-  }
+  return {
+    statusCode: 200,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ tokenPrefix: token.substring(0, 10), siteId: SITE_ID, tests }, null, 2),
+  };
 };
