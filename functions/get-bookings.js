@@ -1,3 +1,6 @@
+// Try multiple ways to access blobs and report what works
+const blobs = require('@netlify/blobs');
+
 const SITE_ID = 'cb8ea563-05dc-4e13-8d42-0e1ad838699f';
 
 exports.handler = async function(event) {
@@ -7,45 +10,68 @@ exports.handler = async function(event) {
   }
 
   const token = process.env.NETLIFY_AUTH_TOKEN;
+  const results = {};
 
-  if (!token) {
-    return { statusCode: 500, body: JSON.stringify({ error: 'Missing NETLIFY_AUTH_TOKEN' }) };
+  // Method 1: getStore('bookings') - relies on auto-injected env
+  try {
+    const store = blobs.getStore('bookings');
+    const data = await store.get('all', { type: 'json' });
+    results.method1_autoContext = { 
+      success: true, 
+      hasData: data != null,
+      isArray: Array.isArray(data),
+      length: Array.isArray(data) ? data.length : null,
+    };
+  } catch (e) {
+    results.method1_autoContext = { error: e.message };
   }
 
-  const headers = { 'Authorization': `Bearer ${token}` };
-  const tests = {};
-
-  // Test 1: GET on the all blob (what we've been doing)
+  // Method 2: getStore with explicit siteID and token (PAT)
   try {
-    const r = await fetch(`https://api.netlify.com/api/v1/blobs/${SITE_ID}/bookings/all`, { headers });
-    const t = await r.text();
-    tests.getAllBlob = { status: r.status, body: t.substring(0, 200) };
-  } catch (e) { tests.getAllBlob = { error: e.message }; }
+    const store = blobs.getStore({ name: 'bookings', siteID: SITE_ID, token });
+    const data = await store.get('all', { type: 'json' });
+    results.method2_explicitPAT = { 
+      success: true,
+      hasData: data != null,
+      isArray: Array.isArray(data),
+      length: Array.isArray(data) ? data.length : null,
+    };
+  } catch (e) {
+    results.method2_explicitPAT = { error: e.message };
+  }
 
-  // Test 2: List the store
+  // Method 3: getDeployStore - newer SDK function for deploy-scoped stores
   try {
-    const r = await fetch(`https://api.netlify.com/api/v1/blobs/${SITE_ID}/bookings`, { headers });
-    const t = await r.text();
-    tests.listStore = { status: r.status, body: t.substring(0, 300) };
-  } catch (e) { tests.listStore = { error: e.message }; }
+    if (blobs.getDeployStore) {
+      const store = blobs.getDeployStore('bookings');
+      const data = await store.get('all', { type: 'json' });
+      results.method3_deployStore = { 
+        success: true,
+        hasData: data != null,
+        isArray: Array.isArray(data),
+      };
+    } else {
+      results.method3_deployStore = { available: false };
+    }
+  } catch (e) {
+    results.method3_deployStore = { error: e.message };
+  }
 
-  // Test 3: User info to verify the token is valid
-  try {
-    const r = await fetch(`https://api.netlify.com/api/v1/user`, { headers });
-    const t = await r.text();
-    tests.userInfo = { status: r.status, body: t.substring(0, 150) };
-  } catch (e) { tests.userInfo = { error: e.message }; }
+  // Method 4: List SDK exports to see what's available
+  results.sdkExports = Object.keys(blobs);
 
-  // Test 4: Site info to verify token access to THIS site
-  try {
-    const r = await fetch(`https://api.netlify.com/api/v1/sites/${SITE_ID}`, { headers });
-    const t = await r.text();
-    tests.siteInfo = { status: r.status, body: t.substring(0, 200) };
-  } catch (e) { tests.siteInfo = { error: e.message }; }
+  // Method 5: List env vars that might give blob context
+  const envVars = Object.keys(process.env)
+    .filter(k => k.startsWith('NETLIFY') || k.startsWith('BLOB') || k.includes('BLOB'))
+    .reduce((acc, k) => {
+      acc[k] = process.env[k] ? `set (len=${process.env[k].length})` : 'empty';
+      return acc;
+    }, {});
+  results.envVars = envVars;
 
   return {
     statusCode: 200,
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ tokenPrefix: token.substring(0, 10), siteId: SITE_ID, tests }, null, 2),
+    body: JSON.stringify(results, null, 2),
   };
 };
