@@ -17,17 +17,10 @@ exports.handler = async function(event) {
     return { statusCode: 400, body: `Webhook Error: ${err.message}` };
   }
 
-  // Listen for both authorization (manual-capture flow) and final capture.
-  // - 'payment_intent.amount_capturable_updated' fires the moment a card is
-  //   authorized for our $X amount with capture_method:manual. This is when
-  //   we actually want to record the booking — the guest has done their part.
-  // - 'payment_intent.succeeded' still fires later when we manually capture
-  //   in Stripe Dashboard. We ignore it here to avoid double-recording.
   if (stripeEvent.type === 'payment_intent.amount_capturable_updated') {
     const paymentIntent = stripeEvent.data.object;
     const meta = paymentIntent.metadata;
 
-    // Helper: parse string-from-metadata into a number, or null if absent/blank
     const num = (v) => {
       if (v === undefined || v === null || v === '') return null;
       const n = Number(v);
@@ -37,49 +30,39 @@ exports.handler = async function(event) {
     const booking = {
       id: paymentIntent.id,
       type: meta.type || 'casita',
-
-      // Stay dates
       checkin: meta.checkin || '',
       checkout: meta.checkout || '',
       nights: meta.nights || '',
-      days: meta.days || '',                 // Boat: charter days
-      casitaCheckin: meta.casitaCheckin || '',   // Boat: linked Casita stay
+      days: meta.days || '',
+      casitaCheckin: meta.casitaCheckin || '',
       casitaCheckout: meta.casitaCheckout || '',
-
-      // Guest details
       guests: meta.guests || '',
       firstName: meta.firstName || '',
       lastName: meta.lastName || '',
       email: meta.email || '',
       phone: meta.phone || '',
       message: meta.message || '',
-
-      // Payment + pricing
-      amount: paymentIntent.amount / 100,        // deposit actually paid
+      amount: paymentIntent.amount / 100,
       subtotal: num(meta.subtotal),
       cleaningFee: num(meta.cleaningFee),
       iva: num(meta.iva),
       total: num(meta.total),
       balance: num(meta.balance),
-
-      // Workflow tracking (defaults; admin dashboard updates these)
       invoiceScheduled: false,
       invoiceScheduledAt: null,
       balancePaid: false,
       balancePaidAt: null,
-
-      // Status + audit
       status: 'confirmed',
       source: 'stripe',
       createdAt: new Date().toISOString(),
     };
 
     try {
-      // Use raw HTTP API for Netlify Blobs (same pattern as get-bookings.js).
-      // The @netlify/blobs SDK won't auto-detect the environment in this
-      // function context, so we go directly to the HTTP API which works.
       const siteId = process.env.NETLIFY_SITE_ID;
       const token = process.env.NETLIFY_AUTH_TOKEN;
+
+      console.log('DEBUG: siteId =', siteId);
+      console.log('DEBUG: hasToken =', !!token);
 
       if (!siteId || !token) {
         console.error('Cannot save booking: missing env vars',
@@ -88,27 +71,36 @@ exports.handler = async function(event) {
         const baseUrl = `https://api.netlify.com/api/v1/blobs/${siteId}/bookings`;
         const headers = { 'Authorization': `Bearer ${token}` };
 
-        // Read existing bookings list
+        console.log('DEBUG: baseUrl =', baseUrl);
+
         let bookings = [];
         const readRes = await fetch(`${baseUrl}/all`, { headers });
+        console.log('DEBUG: read status =', readRes.status);
         if (readRes.ok) {
           const text = await readRes.text();
+          console.log('DEBUG: existing bookings text length =', text.length);
           try { bookings = JSON.parse(text); } catch(_) { bookings = []; }
           if (!Array.isArray(bookings)) bookings = [];
         }
+        console.log('DEBUG: bookings count before push =', bookings.length);
 
-        // Append the new booking and write the whole list back
         bookings.push(booking);
+        const writeBody = JSON.stringify(bookings);
+        console.log('DEBUG: write body length =', writeBody.length);
+
         const writeRes = await fetch(`${baseUrl}/all`, {
           method: 'PUT',
           headers: { ...headers, 'Content-Type': 'application/json' },
-          body: JSON.stringify(bookings),
+          body: writeBody,
         });
 
+        console.log('DEBUG: write status =', writeRes.status);
+        const writeRespText = await writeRes.text().catch(() => '');
+        console.log('DEBUG: write response body =', writeRespText.substring(0, 500));
+
         if (!writeRes.ok) {
-          const errText = await writeRes.text().catch(() => '');
           console.error('Failed to save booking — HTTP',
-            writeRes.status, errText);
+            writeRes.status, writeRespText);
         } else {
           console.log('Booking saved:', booking.id);
         }
@@ -117,9 +109,6 @@ exports.handler = async function(event) {
       console.error('Failed to save booking:', err.message);
     }
 
-    // ── FORMSPREE NOTIFICATION (booking confirmed) ──
-    // Fires after Stripe confirms the deposit was authorized successfully.
-    // Failure here must never break webhook delivery (we still return 200).
     try {
       const FORMSPREE = {
         casita: 'https://formspree.io/f/mreywayn',
