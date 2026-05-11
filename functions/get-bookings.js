@@ -1,3 +1,5 @@
+const { getStore } = require('@netlify/blobs');
+
 const SITE_ID = 'cb8ea563-05dc-4e13-8d42-0e1ad838699f';
 
 exports.handler = async function(event) {
@@ -13,22 +15,28 @@ exports.handler = async function(event) {
   }
 
   try {
-    const baseUrl = `https://api.netlify.com/api/v1/blobs/${SITE_ID}/bookings`;
-    const headers = { 'Authorization': `Bearer ${token}` };
+    // Pass siteID and token explicitly as the SDK error message instructed
+    const store = getStore({
+      name: 'bookings',
+      siteID: SITE_ID,
+      token: token,
+    });
 
     let bookings = [];
     let blocks = [];
 
-    const bookingsRes = await fetch(`${baseUrl}/all`, { headers });
-    if (bookingsRes.ok) {
-      const text = await bookingsRes.text();
-      try { bookings = JSON.parse(text); } catch(e) { bookings = []; }
+    try {
+      const bookingsData = await store.get('all', { type: 'json' });
+      if (Array.isArray(bookingsData)) bookings = bookingsData;
+    } catch (e) {
+      // 'all' key doesn't exist yet
     }
 
-    const blocksRes = await fetch(`${baseUrl}/blocks`, { headers });
-    if (blocksRes.ok) {
-      const text = await blocksRes.text();
-      try { blocks = JSON.parse(text); } catch(e) { blocks = []; }
+    try {
+      const blocksData = await store.get('blocks', { type: 'json' });
+      if (Array.isArray(blocksData)) blocks = blocksData;
+    } catch (e) {
+      // 'blocks' key doesn't exist yet
     }
 
     return {
@@ -37,6 +45,6 @@ exports.handler = async function(event) {
       body: JSON.stringify({ bookings, blocks }),
     };
   } catch (err) {
-    return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
+    return { statusCode: 500, body: JSON.stringify({ error: err.message, stack: err.stack }) };
   }
 };
