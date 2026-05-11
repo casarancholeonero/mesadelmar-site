@@ -344,13 +344,30 @@ function logout() {
 // ── DATA ──
 async function loadData() {
   try {
-    const res = await fetch('/.netlify/functions/get-bookings', {
-      headers: { 'x-admin-key': adminKey }
-    });
-    if (res.status === 401) return false;
-    const data = await res.json();
-    allBookings = Array.isArray(data.bookings) ? data.bookings : [];
-    allBlocks = Array.isArray(data.blocks) ? data.blocks : [];
+    // Fetch blocks from Netlify Blobs (working) and bookings from Stripe (working)
+    // in parallel. Either may fail independently — that's OK, the other still loads.
+    const [bookingsRes, blocksRes] = await Promise.all([
+      fetch('/.netlify/functions/get-stripe-bookings', { headers: { 'x-admin-key': adminKey } }),
+      fetch('/.netlify/functions/get-bookings',        { headers: { 'x-admin-key': adminKey } }),
+    ]);
+
+    // Auth check: if EITHER endpoint says 401, treat as bad password
+    if (bookingsRes.status === 401 || blocksRes.status === 401) return false;
+
+    if (bookingsRes.ok) {
+      const data = await bookingsRes.json();
+      allBookings = Array.isArray(data.bookings) ? data.bookings : [];
+    } else {
+      allBookings = [];
+    }
+
+    if (blocksRes.ok) {
+      const data = await blocksRes.json();
+      allBlocks = Array.isArray(data.blocks) ? data.blocks : [];
+    } else {
+      allBlocks = [];
+    }
+
     renderActions();
     renderBookings();
     renderCalendar('casita');
