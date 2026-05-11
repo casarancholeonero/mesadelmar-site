@@ -1,7 +1,7 @@
 // Hardcoded to match stripe-webhook. Netlify's process.env.NETLIFY_SITE_ID
 // behaves inconsistently across functions in this project; hardcoding
 // guarantees get-bookings reads from the same blob store stripe-webhook writes.
-const SITE_ID = '7163a8ff-fc01-4cfb-a8f4-5c51ef600414';
+const SITE_ID = 'cb8ea563-05dc-4e13-8d42-0e1ad838699f';
 
 exports.handler = async function(event) {
   const adminKey = event.headers['x-admin-key'];
