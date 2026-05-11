@@ -1,5 +1,4 @@
-const blobs = require('@netlify/blobs');
-const pkgJson = require('@netlify/blobs/package.json');
+const SITE_ID = '7163a8ff-fc01-4cfb-a8f4-5c51ef600414';
 
 exports.handler = async function(event) {
   const adminKey = event.headers['x-admin-key'];
@@ -7,46 +6,36 @@ exports.handler = async function(event) {
     return { statusCode: 401, body: JSON.stringify({ error: 'Unauthorized' }) };
   }
 
+  const token = process.env.NETLIFY_AUTH_TOKEN;
+  if (!token) {
+    return { statusCode: 500, body: JSON.stringify({ error: 'Missing NETLIFY_AUTH_TOKEN' }) };
+  }
+
   try {
-    blobs.connectLambda(event);
+    const baseUrl = `https://api.netlify.com/api/v1/blobs/${SITE_ID}/bookings`;
+    const headers = { 'Authorization': `Bearer ${token}` };
 
-    const result = { 
-      sdkVersion: pkgJson.version,
-      attempts: {} 
-    };
+    let bookings = [];
+    let blocks = [];
 
-    // Try with strong consistency
-    try {
-      const store = blobs.getStore({ name: 'bookings', consistency: 'strong' });
-      const all = await store.get('all', { type: 'json' });
-      const keys = await store.list();
-      result.attempts.strong = {
-        hasData: Array.isArray(all),
-        length: Array.isArray(all) ? all.length : 'not array',
-        keys: keys.blobs ? keys.blobs.map(k => k.key) : [],
-      };
-    } catch (e) {
-      result.attempts.strong = { error: e.message };
+    const bookingsRes = await fetch(`${baseUrl}/all`, { headers });
+    if (bookingsRes.ok) {
+      const text = await bookingsRes.text();
+      try { bookings = JSON.parse(text); } catch(e) { bookings = []; }
     }
 
-    // Try default consistency
-    try {
-      const store = blobs.getStore('bookings');
-      const all = await store.get('all', { type: 'json' });
-      result.attempts.default = {
-        hasData: Array.isArray(all),
-        length: Array.isArray(all) ? all.length : 'not array',
-      };
-    } catch (e) {
-      result.attempts.default = { error: e.message };
+    const blocksRes = await fetch(`${baseUrl}/blocks`, { headers });
+    if (blocksRes.ok) {
+      const text = await blocksRes.text();
+      try { blocks = JSON.parse(text); } catch(e) { blocks = []; }
     }
 
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(result, null, 2),
+      body: JSON.stringify({ bookings, blocks }),
     };
   } catch (err) {
-    return { statusCode: 500, body: JSON.stringify({ error: err.message, stack: err.stack }) };
+    return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
   }
 };
