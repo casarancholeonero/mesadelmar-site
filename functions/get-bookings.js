@@ -1,4 +1,5 @@
-const { connectLambda, getStore, listStores } = require('@netlify/blobs');
+const blobs = require('@netlify/blobs');
+const pkgJson = require('@netlify/blobs/package.json');
 
 exports.handler = async function(event) {
   const adminKey = event.headers['x-admin-key'];
@@ -7,29 +8,37 @@ exports.handler = async function(event) {
   }
 
   try {
-    connectLambda(event);
+    blobs.connectLambda(event);
 
-    const result = { stores: {}, listError: null };
+    const result = { 
+      sdkVersion: pkgJson.version,
+      attempts: {} 
+    };
 
+    // Try with strong consistency
     try {
-      const listed = await listStores();
-      result.listed = listed;
-    } catch (e) {
-      result.listError = e.message;
-    }
-
-    // Try reading from store named 'bookings'
-    try {
-      const store = getStore('bookings');
-      const keys = await store.list();
+      const store = blobs.getStore({ name: 'bookings', consistency: 'strong' });
       const all = await store.get('all', { type: 'json' });
-      result.stores.bookings = {
-        keys,
-        allLength: Array.isArray(all) ? all.length : 'not array',
-        allSample: Array.isArray(all) && all[0] ? all[0].id : null,
+      const keys = await store.list();
+      result.attempts.strong = {
+        hasData: Array.isArray(all),
+        length: Array.isArray(all) ? all.length : 'not array',
+        keys: keys.blobs ? keys.blobs.map(k => k.key) : [],
       };
     } catch (e) {
-      result.stores.bookings = { error: e.message };
+      result.attempts.strong = { error: e.message };
+    }
+
+    // Try default consistency
+    try {
+      const store = blobs.getStore('bookings');
+      const all = await store.get('all', { type: 'json' });
+      result.attempts.default = {
+        hasData: Array.isArray(all),
+        length: Array.isArray(all) ? all.length : 'not array',
+      };
+    } catch (e) {
+      result.attempts.default = { error: e.message };
     }
 
     return {
