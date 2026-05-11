@@ -17,11 +17,22 @@ exports.handler = async function(event) {
 
     let bookings = [];
     let blocks = [];
+    let debug = { siteId, baseUrl };
 
     const bookingsRes = await fetch(`${baseUrl}/all`, { headers });
+    debug.bookingsStatus = bookingsRes.status;
+    debug.bookingsOk = bookingsRes.ok;
     if (bookingsRes.ok) {
       const text = await bookingsRes.text();
-      try { bookings = JSON.parse(text); } catch(e) { bookings = []; }
+      debug.bookingsTextLen = text.length;
+      debug.bookingsTextSample = text.substring(0, 200);
+      try { bookings = JSON.parse(text); } catch(e) { 
+        debug.parseError = e.message;
+        bookings = []; 
+      }
+    } else {
+      const errText = await bookingsRes.text().catch(() => '');
+      debug.bookingsError = errText.substring(0, 200);
     }
 
     const blocksRes = await fetch(`${baseUrl}/blocks`, { headers });
@@ -33,7 +44,7 @@ exports.handler = async function(event) {
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ bookings, blocks }),
+      body: JSON.stringify({ bookings, blocks, debug }),
     };
   } catch (err) {
     return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
