@@ -1,5 +1,10 @@
 const Stripe = require('stripe');
 
+// Hardcoded to match get-bookings. Netlify's process.env.NETLIFY_SITE_ID
+// behaves inconsistently across functions in this project; hardcoding
+// guarantees stripe-webhook writes to the same blob store get-bookings reads.
+const SITE_ID = '7163a8ff-fc01-4cfb-a8f4-5c51ef600414';
+
 exports.handler = async function(event) {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: 'Method Not Allowed' };
@@ -58,49 +63,32 @@ exports.handler = async function(event) {
     };
 
     try {
-      const siteId = process.env.NETLIFY_SITE_ID;
       const token = process.env.NETLIFY_AUTH_TOKEN;
 
-      console.log('DEBUG: siteId =', siteId);
-      console.log('DEBUG: hasToken =', !!token);
-
-      if (!siteId || !token) {
-        console.error('Cannot save booking: missing env vars',
-          { hasSiteId: !!siteId, hasToken: !!token });
+      if (!token) {
+        console.error('Cannot save booking: missing NETLIFY_AUTH_TOKEN');
       } else {
-        const baseUrl = `https://api.netlify.com/api/v1/blobs/${siteId}/bookings`;
+        const baseUrl = `https://api.netlify.com/api/v1/blobs/${SITE_ID}/bookings`;
         const headers = { 'Authorization': `Bearer ${token}` };
-
-        console.log('DEBUG: baseUrl =', baseUrl);
 
         let bookings = [];
         const readRes = await fetch(`${baseUrl}/all`, { headers });
-        console.log('DEBUG: read status =', readRes.status);
         if (readRes.ok) {
           const text = await readRes.text();
-          console.log('DEBUG: existing bookings text length =', text.length);
           try { bookings = JSON.parse(text); } catch(_) { bookings = []; }
           if (!Array.isArray(bookings)) bookings = [];
         }
-        console.log('DEBUG: bookings count before push =', bookings.length);
 
         bookings.push(booking);
-        const writeBody = JSON.stringify(bookings);
-        console.log('DEBUG: write body length =', writeBody.length);
-
         const writeRes = await fetch(`${baseUrl}/all`, {
           method: 'PUT',
           headers: { ...headers, 'Content-Type': 'application/json' },
-          body: writeBody,
+          body: JSON.stringify(bookings),
         });
 
-        console.log('DEBUG: write status =', writeRes.status);
-        const writeRespText = await writeRes.text().catch(() => '');
-        console.log('DEBUG: write response body =', writeRespText.substring(0, 500));
-
         if (!writeRes.ok) {
-          console.error('Failed to save booking — HTTP',
-            writeRes.status, writeRespText);
+          const errText = await writeRes.text().catch(() => '');
+          console.error('Failed to save booking — HTTP', writeRes.status, errText);
         } else {
           console.log('Booking saved:', booking.id);
         }
