@@ -1,4 +1,12 @@
-exports.handler = async function(event) {
+// save-booking.js
+// Adds or removes manual date blocks (owner dashboard → "Block Dates").
+// Storage now goes through the official @netlify/blobs SDK. When this runs
+// inside a Netlify Function, credentials are injected automatically —
+// no NETLIFY_SITE_ID / NETLIFY_AUTH_TOKEN needed.
+
+const { getStore } = require('@netlify/blobs');
+
+exports.handler = async function (event) {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
@@ -8,41 +16,25 @@ exports.handler = async function(event) {
     return { statusCode: 401, body: JSON.stringify({ error: 'Unauthorized' }) };
   }
 
-  const siteId = process.env.NETLIFY_SITE_ID;
-  const token = process.env.NETLIFY_AUTH_TOKEN;
-
-  // Debug: return env var status
-  if (!siteId || !token) {
-    return { 
-      statusCode: 500, 
-      body: JSON.stringify({ 
-        error: 'Missing env vars',
-        hasSiteId: !!siteId,
-        hasToken: !!token,
-      }) 
-    };
+  let data;
+  try {
+    data = JSON.parse(event.body);
+  } catch (e) {
+    return { statusCode: 400, body: JSON.stringify({ error: 'Invalid JSON' }) };
   }
 
   try {
-    const data = JSON.parse(event.body);
-    const baseUrl = `https://api.netlify.com/api/v1/blobs/${siteId}/bookings`;
-    const headers = {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/octet-stream',
-    };
+    const store = getStore('bookings');
 
-    // Get existing blocks
-    let blockList = [];
-    const getRes = await fetch(`${baseUrl}/blocks`, { 
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    
-    if (getRes.ok) {
-      const text = await getRes.text();
-      try { blockList = JSON.parse(text); } catch(e) { blockList = []; }
-    }
+    // Load the current block list (strong consistency so we don't clobber a
+    // recent write during this read-modify-write cycle).
+    let blockList = await store.get('blocks', { type: 'json', consistency: 'strong' });
+    if (!Array.isArray(blockList)) blockList = [];
 
     if (data.action === 'add-block') {
+      if (!data.checkin || !data.checkout) {
+        return { statusCode: 400, body: JSON.stringify({ error: 'Missing checkin or checkout date' }) };
+      }
       blockList.push({
         id: Date.now().toString(),
         type: data.type,
@@ -53,33 +45,14 @@ exports.handler = async function(event) {
       });
     } else if (data.action === 'remove-block') {
       blockList = blockList.filter(b => b.id !== data.id);
+    } else {
+      return { statusCode: 400, body: JSON.stringify({ error: 'Unknown action' }) };
     }
 
-    const putRes = await fetch(`${baseUrl}/blocks`, {
-      method: 'PUT',
-      headers,
-      body: JSON.stringify(blockList),
-    });
-
-    if (!putRes.ok) {
-      const errText = await putRes.text();
-      return { 
-        statusCode: 500, 
-        body: JSON.stringify({ 
-          error: 'Netlify API error',
-          status: putRes.status,
-          detail: errText,
-          url: baseUrl
-        }) 
-      };
-    }
+    await store.setJSON('blocks', blockList);
 
     return { statusCode: 200, body: JSON.stringify({ success: true }) };
-
   } catch (err) {
-    return { 
-      statusCode: 500, 
-      body: JSON.stringify({ error: err.message, stack: err.stack }) 
-    };
+    return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
   }
 };
