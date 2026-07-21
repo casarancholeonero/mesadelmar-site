@@ -1,18 +1,20 @@
 // update-booking.js
-// Updates workflow flags on a booking (invoiceScheduled, balancePaid).
-// Storage now goes through the official @netlify/blobs SDK.
+// Updates workflow flags on a booking: invoiceScheduled, balancePaid.
 //
-// Expected POST body: { id, field, value }
-//   id    — booking id (the Stripe payment_intent id)
+// IMPORTANT: the dashboard reads these flags from the Stripe PaymentIntent's
+// metadata (see get-stripe-bookings.js), so this writes them there — to the
+// same place they're read from. That's what makes the Action Items checkboxes
+// and the "Mark paid" button in the bookings table actually stick.
+//
+// POST body: { id, field, value }
+//   id    — the Stripe payment_intent id (used as the booking id in the UI)
 //   field — one of: invoiceScheduled, balancePaid
 //   value — true | false
-// Header: x-admin-key must match ADMIN_PASSWORD env var.
+// Header: x-admin-key must match the ADMIN_PASSWORD env var.
 
-const { getStore, connectLambda } = require('@netlify/blobs');
+const Stripe = require('stripe');
 
 exports.handler = async function (event) {
-  connectLambda(event);
-
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
@@ -34,29 +36,26 @@ exports.handler = async function (event) {
     return { statusCode: 400, body: JSON.stringify({ error: 'Missing id or field' }) };
   }
 
-  // Whitelist editable fields so callers can't overwrite arbitrary data.
+  // Whitelist editable fields so callers can't overwrite arbitrary metadata.
   const editableFields = new Set(['invoiceScheduled', 'balancePaid']);
   if (!editableFields.has(field)) {
     return { statusCode: 400, body: JSON.stringify({ error: 'Field not editable' }) };
   }
 
   try {
-    const store = getStore('bookings');
+    const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
+    const tsField = field + 'At';
 
-    let bookings = await store.get('all', { type: 'json' });
-    if (!Array.isArray(bookings)) bookings = [];
+    // Stripe merges metadata keys, so this updates just these two and leaves
+    // the rest of the booking's metadata untouched.
+    await stripe.paymentIntents.update(id, {
+      metadata: {
+        [field]: value ? 'true' : 'false',
+        [tsField]: value ? new Date().toISOString() : '',
+      },
+    });
 
-    const idx = bookings.findIndex(b => b.id === id);
-    if (idx === -1) {
-      return { statusCode: 404, body: JSON.stringify({ error: 'Booking not found' }) };
-    }
-
-    bookings[idx][field] = !!value;
-    bookings[idx][field + 'At'] = value ? new Date().toISOString() : null;
-
-    await store.setJSON('all', bookings);
-
-    return { statusCode: 200, body: JSON.stringify({ success: true, booking: bookings[idx] }) };
+    return { statusCode: 200, body: JSON.stringify({ success: true }) };
   } catch (err) {
     return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
   }
