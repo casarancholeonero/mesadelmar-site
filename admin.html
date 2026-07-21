@@ -751,11 +751,21 @@ async function addBlock() {
   });
 
   if (res.ok) {
+    const result = await res.json().catch(() => ({}));
+    // Show the new block right away — storage reads can lag a second behind a
+    // write, so add it to the view locally instead of re-fetching immediately.
+    if (result.block) {
+      allBlocks.push(result.block);
+      renderBookings();
+      renderCalendar('casita');
+      renderCalendar('boat');
+    } else {
+      await loadData();
+    }
     showToast('Dates blocked successfully!');
     document.getElementById('block-from').value = '';
     document.getElementById('block-to').value = '';
     document.getElementById('block-note').value = '';
-    await loadData();
   } else {
     const errData = await res.json().catch(() => ({}));
     alert('Failed to save block: ' + (errData.error || res.status));
@@ -770,8 +780,12 @@ async function removeBlock(id) {
     body: JSON.stringify({ action: 'remove-block', id })
   });
   if (res.ok) {
+    // Drop it from the view immediately instead of waiting on a fresh read.
+    allBlocks = allBlocks.filter(b => b.id !== id);
+    renderBookings();
+    renderCalendar('casita');
+    renderCalendar('boat');
     showToast('Block removed.');
-    await loadData();
   }
 }
 
