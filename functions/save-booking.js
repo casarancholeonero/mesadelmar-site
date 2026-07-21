@@ -33,18 +33,20 @@ exports.handler = async function (event) {
     let blockList = await store.get('blocks', { type: 'json' });
     if (!Array.isArray(blockList)) blockList = [];
 
+    let newBlock = null;
     if (data.action === 'add-block') {
       if (!data.checkin || !data.checkout) {
         return { statusCode: 400, body: JSON.stringify({ error: 'Missing checkin or checkout date' }) };
       }
-      blockList.push({
+      newBlock = {
         id: Date.now().toString(),
         type: data.type,
         checkin: data.checkin,
         checkout: data.checkout,
         note: data.note || 'Manual block',
         createdAt: new Date().toISOString(),
-      });
+      };
+      blockList.push(newBlock);
     } else if (data.action === 'remove-block') {
       blockList = blockList.filter(b => b.id !== data.id);
     } else {
@@ -53,7 +55,9 @@ exports.handler = async function (event) {
 
     await store.setJSON('blocks', blockList);
 
-    return { statusCode: 200, body: JSON.stringify({ success: true }) };
+    // Return the created block so the dashboard can show it immediately,
+    // without waiting for the storage read to catch up on the next reload.
+    return { statusCode: 200, body: JSON.stringify({ success: true, block: newBlock }) };
   } catch (err) {
     return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
   }
