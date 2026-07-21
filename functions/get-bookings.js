@@ -2,20 +2,18 @@
 // Returns all bookings + manual blocks for the owner dashboard.
 // Reads through the official @netlify/blobs SDK (auto credentials in Functions).
 
-const { getStore } = require('@netlify/blobs');
+const { getStore, connectLambda } = require('@netlify/blobs');
 
 exports.handler = async function (event) {
+  connectLambda(event);
+
   const adminKey = event.headers['x-admin-key'];
   if (adminKey !== process.env.ADMIN_PASSWORD) {
     return { statusCode: 401, body: JSON.stringify({ error: 'Unauthorized' }) };
   }
 
   try {
-    const store = getStore({
-      name: 'bookings',
-      siteID: process.env.NETLIFY_SITE_ID,
-      token: process.env.NETLIFY_AUTH_TOKEN,
-    });
+    const store = getStore('bookings');
 
     let bookings = await store.get('all', { type: 'json', consistency: 'strong' });
     let blocks = await store.get('blocks', { type: 'json', consistency: 'strong' });

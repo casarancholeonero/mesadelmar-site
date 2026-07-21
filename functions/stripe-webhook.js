@@ -1,7 +1,9 @@
 const Stripe = require('stripe');
-const { getStore } = require('@netlify/blobs');
+const { getStore, connectLambda } = require('@netlify/blobs');
 
 exports.handler = async function (event) {
+  connectLambda(event);
+
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
@@ -85,11 +87,7 @@ exports.handler = async function (event) {
     // ── SAVE (idempotent upsert into the 'all' list) ──
     let isNew = false;
     try {
-      const store = getStore({
-        name: 'bookings',
-        siteID: process.env.NETLIFY_SITE_ID,
-        token: process.env.NETLIFY_AUTH_TOKEN,
-      });
+      const store = getStore('bookings');
       let bookings = await store.get('all', { type: 'json', consistency: 'strong' });
       if (!Array.isArray(bookings)) bookings = [];
 

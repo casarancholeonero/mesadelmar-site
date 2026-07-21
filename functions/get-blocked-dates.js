@@ -3,15 +3,13 @@
 // dates are unavailable for each property. Reads through @netlify/blobs SDK.
 // Fails "open" (returns empty arrays) so the public site never hard-breaks.
 
-const { getStore } = require('@netlify/blobs');
+const { getStore, connectLambda } = require('@netlify/blobs');
 
-exports.handler = async function () {
+exports.handler = async function (event) {
+  connectLambda(event);
+
   try {
-    const store = getStore({
-      name: 'bookings',
-      siteID: process.env.NETLIFY_SITE_ID,
-      token: process.env.NETLIFY_AUTH_TOKEN,
-    });
+    const store = getStore('bookings');
 
     let bookings = await store.get('all', { type: 'json' });
     let blocks = await store.get('blocks', { type: 'json' });

@@ -4,9 +4,11 @@
 // inside a Netlify Function, credentials are injected automatically —
 // no NETLIFY_SITE_ID / NETLIFY_AUTH_TOKEN needed.
 
-const { getStore } = require('@netlify/blobs');
+const { getStore, connectLambda } = require('@netlify/blobs');
 
 exports.handler = async function (event) {
+  connectLambda(event);
+
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
@@ -24,11 +26,7 @@ exports.handler = async function (event) {
   }
 
   try {
-    const store = getStore({
-      name: 'bookings',
-      siteID: process.env.NETLIFY_SITE_ID,
-      token: process.env.NETLIFY_AUTH_TOKEN,
-    });
+    const store = getStore('bookings');
 
     // Load the current block list (strong consistency so we don't clobber a
     // recent write during this read-modify-write cycle).
