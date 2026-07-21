@@ -11,7 +11,11 @@ exports.handler = async function (event) {
   }
 
   try {
-    const store = getStore('bookings');
+    const store = getStore({
+      name: 'bookings',
+      siteID: process.env.NETLIFY_SITE_ID,
+      token: process.env.NETLIFY_AUTH_TOKEN,
+    });
 
     let bookings = await store.get('all', { type: 'json', consistency: 'strong' });
     let blocks = await store.get('blocks', { type: 'json', consistency: 'strong' });

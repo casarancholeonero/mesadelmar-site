@@ -24,7 +24,11 @@ exports.handler = async function (event) {
   }
 
   try {
-    const store = getStore('bookings');
+    const store = getStore({
+      name: 'bookings',
+      siteID: process.env.NETLIFY_SITE_ID,
+      token: process.env.NETLIFY_AUTH_TOKEN,
+    });
 
     // Load the current block list (strong consistency so we don't clobber a
     // recent write during this read-modify-write cycle).
