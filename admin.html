@@ -595,6 +595,13 @@ function renderBookings() {
       else if (b.invoiceScheduled) invoiceBadge = '<span class="badge badge-block">📧 Sent</span>';
       else invoiceBadge = '<span class="badge" style="background:#f0eee4; color:#9a8a7a;">— Pending</span>';
 
+      // Quick action — mark this booking's balance paid (or undo) right here in
+      // the table. Works on any booking, past or upcoming.
+      const paidToggle = b.balancePaid
+        ? `<button class="btn btn-sm" style="margin-top:0.45rem;background:none;border:1px solid #ddd;color:#9a8a7a;" onclick="setBookingFlag('${b.id}','balancePaid',false)">Undo</button>`
+        : `<button class="btn btn-sm btn-primary" style="margin-top:0.45rem;" onclick="setBookingFlag('${b.id}','balancePaid',true)">Mark paid</button>`;
+      const invoiceCell = invoiceBadge + '<br>' + paidToggle;
+
       const stayLabel = b.type === 'casita'
         ? (b.nights ? b.nights + ' night(s)' : '—')
         : (b.days ? b.days + ' day(s)' : '1 day');
@@ -628,7 +635,7 @@ function renderBookings() {
           <td>${total}</td>
           <td>${deposit}</td>
           <td>${balance}<br><span style="color:#9a8a7a;font-size:0.78rem">due ${dueStr}</span></td>
-          <td>${invoiceBadge}</td>
+          <td>${invoiceCell}</td>
         </tr>
       `;
     }).join('');
