@@ -30,7 +30,7 @@ exports.handler = async function (event) {
 
     // Load the current block list (strong consistency so we don't clobber a
     // recent write during this read-modify-write cycle).
-    let blockList = await store.get('blocks', { type: 'json', consistency: 'strong' });
+    let blockList = await store.get('blocks', { type: 'json' });
     if (!Array.isArray(blockList)) blockList = [];
 
     if (data.action === 'add-block') {

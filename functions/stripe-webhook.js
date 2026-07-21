@@ -88,7 +88,7 @@ exports.handler = async function (event) {
     let isNew = false;
     try {
       const store = getStore('bookings');
-      let bookings = await store.get('all', { type: 'json', consistency: 'strong' });
+      let bookings = await store.get('all', { type: 'json' });
       if (!Array.isArray(bookings)) bookings = [];
 
       const idx = bookings.findIndex(b => b.id === incoming.id);

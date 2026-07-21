@@ -15,8 +15,8 @@ exports.handler = async function (event) {
   try {
     const store = getStore('bookings');
 
-    let bookings = await store.get('all', { type: 'json', consistency: 'strong' });
-    let blocks = await store.get('blocks', { type: 'json', consistency: 'strong' });
+    let bookings = await store.get('all', { type: 'json' });
+    let blocks = await store.get('blocks', { type: 'json' });
 
     return {
       statusCode: 200,
