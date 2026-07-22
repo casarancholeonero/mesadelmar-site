@@ -16,11 +16,23 @@ exports.handler = async function (event) {
     if (!Array.isArray(bookings)) bookings = [];
     if (!Array.isArray(blocks)) blocks = [];
 
-    function getDatesInRange(checkin, checkout) {
+    // Bookings vs. manual blocks use DIFFERENT end-date conventions:
+    //   • Bookings  — checkout is the morning AFTER the stay/charter ends
+    //     (casita: nights = checkout − checkin; boat: last on-water day = checkout − 1).
+    //     So the checkout day itself is NOT occupied and must stay bookable.
+    //   • Manual blocks — the owner picked explicit From/To dates to hold, so
+    //     BOTH ends are blocked (inclusive).
+    function getDatesInRange(checkin, checkout, endInclusive) {
       const dates = [];
       if (!checkin) return dates;
       const start = new Date(checkin + 'T00:00:00');
-      const end = checkout ? new Date(checkout + 'T00:00:00') : new Date(checkin + 'T00:00:00');
+      let end;
+      if (checkout) {
+        end = new Date(checkout + 'T00:00:00');
+        if (!endInclusive) end.setDate(end.getDate() - 1); // checkout day stays free
+      } else {
+        end = new Date(start);
+      }
       for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
         dates.push(d.toISOString().split('T')[0]);
       }
@@ -30,8 +42,14 @@ exports.handler = async function (event) {
     const casitaDates = new Set();
     const boatDates = new Set();
 
-    [...bookings, ...blocks].forEach(b => {
-      const dates = getDatesInRange(b.checkin, b.checkout);
+    bookings.forEach(b => {
+      const dates = getDatesInRange(b.checkin, b.checkout, false); // checkout day free
+      if (b.type === 'casita') dates.forEach(d => casitaDates.add(d));
+      if (b.type === 'boat') dates.forEach(d => boatDates.add(d));
+    });
+
+    blocks.forEach(b => {
+      const dates = getDatesInRange(b.checkin, b.checkout, true); // From/To inclusive
       if (b.type === 'casita') dates.forEach(d => casitaDates.add(d));
       if (b.type === 'boat') dates.forEach(d => boatDates.add(d));
     });
