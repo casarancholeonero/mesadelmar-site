@@ -36,7 +36,7 @@ exports.handler = async function(event) {
       return Number.isFinite(n) ? n : null;
     };
 
-    const bookings = allIntents
+    const mapped = allIntents
       .filter(pi => {
         // Only show payment intents that look like our bookings
         if (!pi.metadata || !pi.metadata.checkin) return false;
@@ -75,16 +75,25 @@ exports.handler = async function(event) {
           invoiceScheduledAt: meta.invoiceScheduledAt || null,
           balancePaid: meta.balancePaid === 'true',
           balancePaidAt: meta.balancePaidAt || null,
+          // Cancellation record — written to PI metadata by cancel-booking.js
+          cancelled: meta.cancelled === 'true',
+          cancelledAt: meta.cancelledAt || null,
+          cancelReason: meta.cancelReason || '',
           status: pi.status === 'succeeded' ? 'paid' : 'confirmed',
           source: 'stripe',
           createdAt: new Date(pi.created * 1000).toISOString(),
         };
       });
 
+    // Active list hides cancelled bookings; cancelled are kept separately so the
+    // dashboard can show them as a record.
+    const bookings = mapped.filter(b => !b.cancelled);
+    const cancelled = mapped.filter(b => b.cancelled);
+
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ bookings }),
+      body: JSON.stringify({ bookings, cancelled }),
     };
   } catch (err) {
     return {
