@@ -233,6 +233,13 @@
         <h2>Manual Date Blocks</h2>
         <div id="blocks-list"><div class="empty-state">Loading...</div></div>
       </div>
+      <div class="card">
+        <h2>Cancelled Bookings</h2>
+        <p style="color:#6b5a4a; font-size:0.85rem; margin-bottom:1rem; line-height:1.6;">
+          Kept here as a record. Cancelling frees the dates on your public site and hides the booking from your active list — it does <strong>not</strong> issue a refund (do that in Stripe if one is owed). "Restore" undoes a cancellation and re-blocks the dates.
+        </p>
+        <div id="cancelled-list"><div class="empty-state">None.</div></div>
+      </div>
     </div>
 
     <!-- CASITA CALENDAR -->
@@ -314,6 +321,7 @@
 let adminKey = '';
 let allBookings = [];
 let allBlocks = [];
+let allCancelled = [];
 let casitaMonth = new Date();
 let boatMonth = new Date();
 casitaMonth.setDate(1);
@@ -357,8 +365,10 @@ async function loadData() {
     if (bookingsRes.ok) {
       const data = await bookingsRes.json();
       allBookings = Array.isArray(data.bookings) ? data.bookings : [];
+      allCancelled = Array.isArray(data.cancelled) ? data.cancelled : [];
     } else {
       allBookings = [];
+      allCancelled = [];
     }
 
     if (blocksRes.ok) {
@@ -378,6 +388,7 @@ async function loadData() {
     // Still show dashboard even if data load fails
     allBookings = [];
     allBlocks = [];
+    allCancelled = [];
     renderActions();
     renderBookings();
     renderCalendar('casita');
@@ -454,6 +465,88 @@ async function setBookingFlag(id, field, value) {
     console.error(err);
     showToast('Network error — please try again');
     return false;
+  }
+}
+
+// ── CANCEL / RESTORE A BOOKING ──
+async function cancelBooking(id) {
+  const b = allBookings.find(x => x.id === id);
+  const who = b ? (bookingFullName(b).trim() || 'this guest') : 'this booking';
+  const msg = 'Cancel the booking for ' + who + '?\n\n'
+    + 'This will:\n'
+    + '  • Free these dates on your public site right away\n'
+    + '  • Move the booking to your Cancelled records\n\n'
+    + 'It does NOT refund any money — issue a refund in Stripe if one is owed.';
+  if (!confirm(msg)) return;
+
+  // Optional reason for your own records (Cancel here = skip / no reason).
+  const reason = prompt('Optional — note a reason for cancelling (for your records), or leave blank:', '') || '';
+
+  try {
+    const res = await fetch('/.netlify/functions/cancel-booking', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKey },
+      body: JSON.stringify({ id, action: 'cancel', reason }),
+    });
+    if (!res.ok) {
+      const t = await res.text().catch(() => '');
+      console.error('Cancel failed:', t);
+      showToast('Cancel failed — please try again');
+      return;
+    }
+    const data = await res.json().catch(() => ({}));
+    // Move locally so the view updates without a full reload.
+    if (b) {
+      b.cancelled = true;
+      b.cancelledAt = new Date().toISOString();
+      b.cancelReason = reason;
+      allBookings = allBookings.filter(x => x.id !== id);
+      allCancelled.unshift(b);
+    }
+    renderActions();
+    renderBookings();
+    renderCalendar('casita');
+    renderCalendar('boat');
+    showToast(data.warning ? 'Cancelled — re-check the public calendar shortly' : 'Booking cancelled and dates freed.');
+  } catch (err) {
+    console.error(err);
+    showToast('Network error — please try again');
+  }
+}
+
+async function restoreBooking(id) {
+  const b = allCancelled.find(x => x.id === id);
+  const who = b ? (bookingFullName(b).trim() || 'this guest') : 'this booking';
+  if (!confirm('Restore the booking for ' + who + '?\n\nThis re-blocks these dates on your public site and moves the booking back to your active list.')) return;
+
+  try {
+    const res = await fetch('/.netlify/functions/cancel-booking', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-key': adminKey },
+      body: JSON.stringify({ id, action: 'restore' }),
+    });
+    if (!res.ok) {
+      const t = await res.text().catch(() => '');
+      console.error('Restore failed:', t);
+      showToast('Restore failed — please try again');
+      return;
+    }
+    const data = await res.json().catch(() => ({}));
+    if (b) {
+      b.cancelled = false;
+      b.cancelledAt = null;
+      b.cancelReason = '';
+      allCancelled = allCancelled.filter(x => x.id !== id);
+      allBookings.push(b);
+    }
+    renderActions();
+    renderBookings();
+    renderCalendar('casita');
+    renderCalendar('boat');
+    showToast(data.warning ? 'Restored — re-check the public calendar shortly' : 'Booking restored.');
+  } catch (err) {
+    console.error(err);
+    showToast('Network error — please try again');
   }
 }
 
@@ -636,11 +729,12 @@ function renderBookings() {
           <td>${deposit}</td>
           <td>${balance}<br><span style="color:#9a8a7a;font-size:0.78rem">due ${dueStr}</span></td>
           <td>${invoiceCell}</td>
+          <td><button class="btn btn-danger btn-sm" onclick="cancelBooking('${b.id}')">Cancel</button></td>
         </tr>
       `;
     }).join('');
     el.innerHTML = `<div style="overflow-x:auto"><table class="booking-table">
-      <thead><tr><th>Type</th><th>Guest</th><th>From</th><th>To</th><th>Duration</th><th>Total</th><th>Deposit</th><th>Balance</th><th>Invoice</th></tr></thead>
+      <thead><tr><th>Type</th><th>Guest</th><th>From</th><th>To</th><th>Duration</th><th>Total</th><th>Deposit</th><th>Balance</th><th>Invoice</th><th></th></tr></thead>
       <tbody>${rows}</tbody>
     </table></div>`;
   }
@@ -662,6 +756,35 @@ function renderBookings() {
       <thead><tr><th>Type</th><th>From</th><th>To</th><th>Note</th><th></th></tr></thead>
       <tbody>${rows}</tbody>
     </table>`;
+  }
+
+  // Cancelled bookings (record only)
+  const cl = document.getElementById('cancelled-list');
+  if (cl) {
+    if (!allCancelled || allCancelled.length === 0) {
+      cl.innerHTML = '<div class="empty-state">None.</div>';
+    } else {
+      const sortedC = [...allCancelled].sort((a,b) => (b.cancelledAt || '').localeCompare(a.cancelledAt || ''));
+      const crows = sortedC.map(b => {
+        const deposit = b.amount ? '$' + Number(b.amount).toLocaleString() : '—';
+        const when = b.cancelledAt ? fmtDate(new Date(b.cancelledAt)) : '—';
+        const dateRange = (b.checkin || '—') + ' → ' + (b.checkout || b.checkin || '—');
+        return `
+          <tr>
+            <td><span class="badge badge-${b.type}">${b.type === 'casita' ? '🏡 Casita' : '⚓ El Jefe'}</span></td>
+            <td>${escapeHtml(bookingFullName(b))}<br><span style="color:#9a8a7a;font-size:0.8rem">${escapeHtml(b.email || '')}</span></td>
+            <td>${dateRange}</td>
+            <td>${deposit}</td>
+            <td>${when}${b.cancelReason ? '<br><span style="color:#9a8a7a;font-size:0.78rem">' + escapeHtml(b.cancelReason) + '</span>' : ''}</td>
+            <td><button class="btn btn-sm" style="background:none;border:1px solid #ddd;color:var(--sage);" onclick="restoreBooking('${b.id}')">Restore</button></td>
+          </tr>
+        `;
+      }).join('');
+      cl.innerHTML = `<div style="overflow-x:auto"><table class="booking-table">
+        <thead><tr><th>Type</th><th>Guest</th><th>Dates</th><th>Deposit</th><th>Cancelled</th><th></th></tr></thead>
+        <tbody>${crows}</tbody>
+      </table></div>`;
+    }
   }
 }
 
